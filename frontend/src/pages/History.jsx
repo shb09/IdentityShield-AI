@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
+import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
 import { Search, Filter, Clock, ChevronRight } from 'lucide-react';
 
@@ -14,16 +15,13 @@ export default function History() {
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch('/api/cases?limit=100', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => {
-      setCases(data.cases || []);
-      setTotal(data.total || 0);
-    })
-    .catch(() => setCases([]))
-    .finally(() => setLoading(false));
+    apiGet('/api/cases?limit=100')
+      .then(data => {
+        setCases(data.cases || []);
+        setTotal(data.total || 0);
+      })
+      .catch(() => setCases([]))
+      .finally(() => setLoading(false));
   }, [token]);
 
   const filtered = cases.filter(c => {

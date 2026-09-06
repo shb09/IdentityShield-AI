@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
+import { apiUpload } from '../api';
 import {
   Upload, Camera, Scan, FileText, User, X,
   CheckCircle, Loader2, Shield, AlertCircle
@@ -84,18 +85,7 @@ export default function NewScreening() {
     if (faceFile) formData.append('face', faceFile);
 
     try {
-      const res = await fetch('/api/screen', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || 'Screening failed');
-      }
-
-      const result = await res.json();
+      const result = await apiUpload('/api/screen', formData);
       navigate(`/screening/${result.screening_id}`);
     } catch (err) {
       setError(err.message || 'Screening failed. Please try again.');

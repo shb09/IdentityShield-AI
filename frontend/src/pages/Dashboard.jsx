@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
+import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
 import {
   Scan, ShieldCheck, AlertTriangle, XCircle,
@@ -14,12 +15,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/dashboard/stats', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => res.json())
-    .then(data => setStats(data))
-    .catch(() => setStats({
+    apiGet('/api/dashboard/stats')
+      .then(data => setStats(data))
+      .catch(() => setStats({
       total_screenings: 3,
       low_risk: 1,
       medium_risk: 0,

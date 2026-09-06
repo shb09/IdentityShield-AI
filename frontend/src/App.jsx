@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { apiFetch, apiPost } from './api';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NewScreening from './pages/NewScreening';
@@ -19,32 +20,21 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => {
-        if (res.ok) return res.json();
-        throw new Error('Invalid token');
-      })
-      .then(data => setUser(data))
-      .catch(() => {
-        localStorage.removeItem('token');
-        setToken(null);
-      });
+      apiFetch('/api/auth/me')
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error('Invalid token');
+        })
+        .then(data => setUser(data))
+        .catch(() => {
+          localStorage.removeItem('token');
+          setToken(null);
+        });
     }
   }, [token]);
 
   const login = async (username, password) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Login failed');
-    }
-    const data = await res.json();
+    const data = await apiPost('/api/auth/login', { username, password });
     localStorage.setItem('token', data.access_token);
     setToken(data.access_token);
     setUser(data.user);

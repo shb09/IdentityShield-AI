@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
+import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
 import StatusCard from '../components/StatusCard';
 import DocumentPreview from '../components/DocumentPreview';
@@ -18,16 +19,10 @@ export default function ScreeningResult() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`/api/cases/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(res => {
-      if (!res.ok) throw new Error('Case not found');
-      return res.json();
-    })
-    .then(data => setCaseData(data))
-    .catch(err => setError(err.message))
-    .finally(() => setLoading(false));
+    apiGet(`/api/cases/${id}`)
+      .then(data => setCaseData(data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
   }, [id, token]);
 
   if (loading) {
