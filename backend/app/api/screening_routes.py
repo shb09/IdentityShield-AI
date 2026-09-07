@@ -59,14 +59,28 @@ async def screen_document(
         face_path = save_upload(face_content, face.filename, "faces")
 
     # Create screening record
-    db.execute(
-        """INSERT INTO screenings
-        (id, officer_id, document_type, status, document_image, visa_image, face_image, created_at)
-        VALUES (?, ?, ?, 'processing', ?, ?, ?, ?)""",
-        (screening_id, current_user["id"], document_type, doc_path, visa_path, face_path,
-         datetime.now().isoformat())
-    )
-    db.commit()
+    screening_doc = {
+        "_id": screening_id,
+        "officer_id": current_user["_id"],
+        "document_type": document_type,
+        "status": "processing",
+        "risk_score": 0,
+        "risk_level": "PENDING",
+        "ocr_confidence": 0.0,
+        "ocr_result": {},
+        "validation_result": {},
+        "tampering_result": {},
+        "face_result": {},
+        "risk_result": {},
+        "explanation": [],
+        "document_image": doc_path,
+        "visa_image": visa_path,
+        "face_image": face_path,
+        "demo_mode": False,
+        "created_at": datetime.now().isoformat(),
+        "completed_at": None,
+    }
+    await db.screenings.insert_one(screening_doc)
 
     try:
         # Module 1: OCR
@@ -101,44 +115,32 @@ async def screen_document(
             ocr_result.get("confidence", 0),
         )
 
-        # Update database
-        db.execute(
-            """UPDATE screenings SET
-            status = 'completed',
-            risk_score = ?,
-            risk_level = ?,
-            ocr_confidence = ?,
-            ocr_result = ?,
-            validation_result = ?,
-            tampering_result = ?,
-            face_result = ?,
-            risk_result = ?,
-            explanation = ?,
-            completed_at = ?
-            WHERE id = ?""",
-            (
-                risk_result["score"],
-                risk_result["level"],
-                ocr_result.get("confidence", 0),
-                json.dumps(ocr_result),
-                json.dumps(validation_result),
-                json.dumps(tampering_result),
-                json.dumps(face_result),
-                json.dumps(risk_result),
-                json.dumps(risk_result.get("reasons", [])),
-                datetime.now().isoformat(),
-                screening_id,
-            )
+        # Update MongoDB
+        await db.screenings.update_one(
+            {"_id": screening_id},
+            {"$set": {
+                "status": "completed",
+                "risk_score": risk_result["score"],
+                "risk_level": risk_result["level"],
+                "ocr_confidence": ocr_result.get("confidence", 0),
+                "ocr_result": ocr_result,
+                "validation_result": validation_result,
+                "tampering_result": tampering_result,
+                "face_result": face_result,
+                "risk_result": risk_result,
+                "explanation": risk_result.get("reasons", []),
+                "completed_at": datetime.now().isoformat(),
+            }}
         )
-        db.commit()
 
         # Audit log
-        db.execute(
-            "INSERT INTO audit_log (screening_id, officer_id, action, details) VALUES (?, ?, ?, ?)",
-            (screening_id, current_user["id"], "screen_complete",
-             json.dumps({"risk_score": risk_result["score"], "risk_level": risk_result["level"]}))
-        )
-        db.commit()
+        await db.audit_log.insert_one({
+            "screening_id": screening_id,
+            "officer_id": current_user["_id"],
+            "action": "screen_complete",
+            "details": {"risk_score": risk_result["score"], "risk_level": risk_result["level"]},
+            "timestamp": datetime.now().isoformat(),
+        })
 
         return {
             "screening_id": screening_id,
@@ -154,14 +156,11 @@ async def screen_document(
         }
 
     except Exception as e:
-        db.execute(
-            "UPDATE screenings SET status = 'error' WHERE id = ?",
-            (screening_id,)
+        await db.screenings.update_one(
+            {"_id": screening_id},
+            {"$set": {"status": "error"}}
         )
-        db.commit()
         raise HTTPException(status_code=500, detail=f"Screening failed: {str(e)}")
-    finally:
-        db.close()
 
 
 @router.get("/cases")
@@ -171,16 +170,19 @@ async def list_cases(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_db()
-    cases = db.execute(
-        """SELECT id, document_type, risk_score, risk_level, status, created_at, demo_mode
-        FROM screenings ORDER BY created_at DESC LIMIT ? OFFSET ?""",
-        (limit, skip)
-    ).fetchall()
-    total = db.execute("SELECT COUNT(*) as cnt FROM screenings").fetchone()["cnt"]
-    db.close()
+    cursor = db.screenings.find(
+        {},
+        {"_id": 1, "document_type": 1, "risk_score": 1, "risk_level": 1, "status": 1, "created_at": 1, "demo_mode": 1}
+    ).sort("created_at", -1).skip(skip).limit(limit)
+    cases = await cursor.to_list(length=limit)
+    total = await db.screenings.count_documents({})
+
+    # Convert _id to id for frontend
+    for case in cases:
+        case["id"] = case.pop("_id")
 
     return {
-        "cases": [dict(c) for c in cases],
+        "cases": cases,
         "total": total,
     }
 
@@ -191,46 +193,40 @@ async def get_case(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_db()
-    case = db.execute(
-        "SELECT * FROM screenings WHERE id = ?", (screening_id,)
-    ).fetchone()
-    db.close()
+    case = await db.screenings.find_one({"_id": screening_id})
 
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
 
-    case_dict = dict(case)
-    for field in ["ocr_result", "validation_result", "tampering_result", "face_result", "risk_result", "explanation"]:
-        if case_dict.get(field):
-            try:
-                case_dict[field] = json.loads(case_dict[field])
-            except (json.JSONDecodeError, TypeError):
-                pass
+    case["id"] = case.pop("_id")
 
-    if case_dict.get("document_image"):
-        case_dict["document_image_url"] = f"/api/uploads/documents/{case_dict['document_image'].split('/')[-1]}"
+    if case.get("document_image"):
+        case["document_image_url"] = f"/api/uploads/documents/{case['document_image'].split('/')[-1]}"
 
-    return case_dict
+    return case
 
 
 @router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     db = get_db()
-    total = db.execute("SELECT COUNT(*) as cnt FROM screenings").fetchone()["cnt"]
-    low = db.execute("SELECT COUNT(*) as cnt FROM screenings WHERE risk_level = 'LOW'").fetchone()["cnt"]
-    medium = db.execute("SELECT COUNT(*) as cnt FROM screenings WHERE risk_level = 'MEDIUM'").fetchone()["cnt"]
-    high = db.execute("SELECT COUNT(*) as cnt FROM screenings WHERE risk_level = 'HIGH'").fetchone()["cnt"]
+    total = await db.screenings.count_documents({})
+    low = await db.screenings.count_documents({"risk_level": "LOW"})
+    medium = await db.screenings.count_documents({"risk_level": "MEDIUM"})
+    high = await db.screenings.count_documents({"risk_level": "HIGH"})
 
-    recent = db.execute(
-        """SELECT id, document_type, risk_score, risk_level, status, created_at
-        FROM screenings ORDER BY created_at DESC LIMIT 10"""
-    ).fetchall()
-    db.close()
+    cursor = db.screenings.find(
+        {},
+        {"_id": 1, "document_type": 1, "risk_score": 1, "risk_level": 1, "status": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(10)
+    recent = await cursor.to_list(length=10)
+
+    for case in recent:
+        case["id"] = case.pop("_id")
 
     return {
         "total_screenings": total,
         "low_risk": low,
         "medium_risk": medium,
         "high_risk": high,
-        "recent_cases": [dict(c) for c in recent],
+        "recent_cases": recent,
     }

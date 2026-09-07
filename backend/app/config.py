@@ -4,7 +4,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 DEMO_DATA_DIR = BASE_DIR / "demo_data"
-DATABASE_PATH = BASE_DIR / "screenings.db"
 
 UPLOAD_DIR.mkdir(exist_ok=True)
 DEMO_DATA_DIR.mkdir(exist_ok=True)
