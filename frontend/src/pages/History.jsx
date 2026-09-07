@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
-import { Search, Filter, Clock, ChevronRight } from 'lucide-react';
+import { Search, Clock, ChevronRight } from 'lucide-react';
 
 export default function History() {
   const { token } = useAuth();
@@ -16,10 +16,7 @@ export default function History() {
 
   useEffect(() => {
     apiGet('/api/cases?limit=100')
-      .then(data => {
-        setCases(data.cases || []);
-        setTotal(data.total || 0);
-      })
+      .then(data => { setCases(data.cases || []); setTotal(data.total || 0); })
       .catch(() => setCases([]))
       .finally(() => setLoading(false));
   }, [token]);
@@ -31,108 +28,71 @@ export default function History() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 animate-fade-in">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Screening History</h1>
-        <p className="text-sm text-slate-500 mt-0.5">{total} total cases</p>
+        <h1 className="text-xl font-bold text-slate-800 tracking-tight">Screening History</h1>
+        <p className="text-sm text-slate-400 mt-0.5">{total} total cases</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row gap-3">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3.5 flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by Case ID..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+          <input type="text" placeholder="Search by Case ID..." value={search} onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 placeholder:text-slate-300" />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {['all', 'LOW', 'MEDIUM', 'HIGH'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === f
-                  ? 'bg-navy-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                filter === f ? 'bg-[#6366f1] text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-indigo-50 border border-slate-200'
+              }`}>
               {f === 'all' ? 'All' : f}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Cases Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-navy-200 border-t-navy-600 rounded-full animate-spin" />
+          <div className="flex items-center justify-center py-14">
+            <div className="w-6 h-6 border-2 border-indigo-200 border-t-[#6366f1] rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
-            <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No cases found</p>
+          <div className="text-center py-14">
+            <Clock className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+            <p className="text-sm text-slate-400">No cases found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Case ID</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Risk Score</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Risk Level</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Case ID</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Date</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Type</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Risk Score</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Level</th>
                   <th className="px-5 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-50">
                 {filtered.map(c => (
-                  <tr
-                    key={c.id}
-                    onClick={() => navigate(`/screening/${c.id}`)}
-                    className="hover:bg-slate-50 cursor-pointer transition-colors"
-                  >
-                    <td className="px-5 py-4">
-                      <span className="text-sm font-mono font-medium text-slate-700">{c.id}</span>
+                  <tr key={c.id} onClick={() => navigate(`/screening/${c.id}`)} className="hover:bg-indigo-50/30 cursor-pointer transition-colors">
+                    <td className="px-5 py-3.5">
+                      <span className="text-xs font-mono font-semibold text-slate-600">{c.id}</span>
                       {c.demo_mode === 1 && (
-                        <span className="ml-2 text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                          DEMO
-                        </span>
+                        <span className="ml-2 text-[9px] bg-indigo-50 text-[#6366f1] px-1.5 py-0.5 rounded-md font-bold">DEMO</span>
                       )}
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-500">
-                      {new Date(c.created_at).toLocaleDateString('en-IN', {
-                        day: '2-digit', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
-                      })}
+                    <td className="px-5 py-3.5 text-xs text-slate-400">
+                      {new Date(c.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600 capitalize">
-                      {c.document_type?.replace('_', ' ')}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="text-sm font-semibold text-slate-700">{c.risk_score}/100</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <RiskBadge level={c.risk_level} score={c.risk_score} />
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        c.status === 'completed' ? 'bg-emerald-50 text-emerald-600' :
-                        c.status === 'processing' ? 'bg-blue-50 text-blue-600' :
-                        'bg-slate-100 text-slate-500'
-                      }`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </td>
+                    <td className="px-5 py-3.5 text-xs text-slate-500 capitalize">{c.document_type?.replace('_', ' ')}</td>
+                    <td className="px-5 py-3.5"><span className="text-xs font-bold text-slate-600">{c.risk_score}/100</span></td>
+                    <td className="px-5 py-3.5"><RiskBadge level={c.risk_level} score={c.risk_score} /></td>
+                    <td className="px-5 py-3.5"><ChevronRight className="w-3.5 h-3.5 text-slate-300" /></td>
                   </tr>
                 ))}
               </tbody>

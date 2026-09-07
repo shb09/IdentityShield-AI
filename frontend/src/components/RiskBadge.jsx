@@ -3,23 +3,20 @@ import React from 'react';
 const riskConfig = {
   LOW: {
     bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    text: 'text-emerald-700',
-    dot: 'bg-emerald-500',
+    text: 'text-emerald-600',
+    dot: 'bg-emerald-400',
     label: 'LOW RISK',
   },
   MEDIUM: {
     bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    text: 'text-amber-700',
-    dot: 'bg-amber-500',
+    text: 'text-amber-600',
+    dot: 'bg-amber-400',
     label: 'MEDIUM RISK',
   },
   HIGH: {
-    bg: 'bg-red-50',
-    border: 'border-red-200',
-    text: 'text-red-700',
-    dot: 'bg-red-500',
+    bg: 'bg-rose-50',
+    text: 'text-rose-600',
+    dot: 'bg-rose-400',
     label: 'HIGH RISK',
   },
 };
@@ -29,21 +26,21 @@ export default function RiskBadge({ level, score, size = 'md' }) {
 
   if (size === 'lg') {
     return (
-      <div className={`inline-flex items-center gap-3 px-5 py-3 rounded-xl border-2 ${config.bg} ${config.border}`}>
-        <div className={`w-3 h-3 rounded-full ${config.dot} animate-pulse`} />
-        <span className={`text-xl font-bold ${config.text}`}>{config.label}</span>
+      <div className={`inline-flex items-center gap-2.5 px-4 py-2.5 rounded-2xl ${config.bg}`}>
+        <div className={`w-2.5 h-2.5 rounded-full ${config.dot} animate-pulse`} />
+        <span className={`text-lg font-bold ${config.text}`}>{config.label}</span>
         {score !== undefined && (
-          <span className={`text-lg font-mono ${config.text} opacity-75`}>{score}/100</span>
+          <span className={`text-base font-mono ${config.text} opacity-60`}>{score}/100</span>
         )}
       </div>
     );
   }
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text} ${config.border} border`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${config.bg} ${config.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
       {config.label}
-      {score !== undefined && <span className="ml-1 opacity-70">{score}</span>}
+      {score !== undefined && <span className="ml-0.5 opacity-60">{score}</span>}
     </span>
   );
 }

@@ -7,23 +7,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: {
-          50: '#f0f3ff',
-          100: '#d9e0ff',
-          200: '#b3c1ff',
-          300: '#8ca2ff',
-          400: '#6683ff',
-          500: '#4064ff',
-          600: '#1a45ff',
-          700: '#0033e6',
-          800: '#0029b8',
-          900: '#001f8a',
-          950: '#00105c',
+        brand: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          200: '#c7d2fe',
+          300: '#a5b4fc',
+          400: '#818cf8',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
+          800: '#3730a3',
+          900: '#312e81',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      boxShadow: {
+        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
+        'card': '0 0 0 1px rgb(0 0 0 / 0.03), 0 2px 4px rgb(0 0 0 / 0.04)',
+        'lifted': '0 0 0 1px rgb(0 0 0 / 0.03), 0 4px 12px rgb(0 0 0 / 0.06)',
       },
     },
   },
