@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { apiGet } from './api';
 import Layout from './components/Layout';
@@ -51,9 +51,8 @@ export default function App() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await apiGet('/api/auth/me');
-        if (!cancelled && res.ok) {
-          const data = await res.json();
+        const data = await apiGet('/api/auth/me');
+        if (!cancelled && data) {
           setUser(data);
         } else if (!cancelled) {
           setToken(null);
