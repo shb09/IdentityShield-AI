@@ -18,10 +18,9 @@ export default function History() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiGet('/api/screening?limit=100');
-        if (res.ok) {
-          const data = await res.json();
-          setCases(Array.isArray(data) ? data : data.cases || []);
+        const res = await apiGet('/api/cases?limit=100');
+        if (res) {
+          setCases(Array.isArray(res) ? res : res.cases || []);
         }
       } catch (err) {
         console.error('Failed to load history:', err);

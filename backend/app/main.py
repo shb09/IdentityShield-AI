@@ -298,6 +298,7 @@ async def create_demo_data():
         await db.screenings.insert_many(demo_records)
 
 
+@app.get("/health")
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "version": "1.0.0"}

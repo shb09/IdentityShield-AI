@@ -221,6 +221,11 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     medium = await db.screenings.count_documents({"risk_level": "MEDIUM"})
     high = await db.screenings.count_documents({"risk_level": "HIGH"})
 
+    # Calculate average risk score
+    pipeline = [{"$group": {"_id": None, "avg_score": {"$avg": "$risk_score"}}}]
+    avg_result = await db.screenings.aggregate(pipeline).to_list(1)
+    avg_risk_score = avg_result[0]["avg_score"] if avg_result else 0
+
     cursor = db.screenings.find(
         {},
         {"_id": 1, "document_type": 1, "risk_score": 1, "risk_level": 1, "status": 1, "created_at": 1}
@@ -235,5 +240,6 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "low_risk": low,
         "medium_risk": medium,
         "high_risk": high,
+        "avg_risk_score": round(avg_risk_score, 1),
         "recent_cases": recent,
     }

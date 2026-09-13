@@ -16,9 +16,8 @@ export default function ScreeningResult() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await apiGet(`/api/screening/${id}`);
-        if (!res.ok) throw new Error(`Not found (${res.status})`);
-        const result = await res.json();
+        const result = await apiGet(`/api/cases/${id}`);
+        if (!result) throw new Error('No data returned');
         if (!cancelled) setData(result);
       } catch (err) {
         if (!cancelled) setError(err.message || 'Failed to load');
@@ -223,13 +222,19 @@ export default function ScreeningResult() {
       </div>
 
       {/* Document Image */}
-      {data.document_image && (
+      {(data.document_image_url || data.document_image) && (
         <div className="glass-card p-6" style={{ background: 'var(--gradient-card)' }}>
           <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <Eye className="w-4 h-4" style={{ color: 'var(--accent)' }} /> Document Preview
           </h3>
           <div className="flex justify-center">
-            <img src={data.document_image} alt="Scanned document" className="max-h-72 rounded-xl" style={{ border: '1px solid var(--border-card)' }} />
+            <img
+              src={data.document_image_url || `/api/uploads/documents/${data.document_image}`}
+              alt="Scanned document"
+              className="max-h-72 rounded-xl"
+              style={{ border: '1px solid var(--border-card)' }}
+              onError={e => { e.target.style.display = 'none'; }}
+            />
           </div>
         </div>
       )}

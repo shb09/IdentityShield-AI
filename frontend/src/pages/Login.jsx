@@ -22,10 +22,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const formData = new URLSearchParams();
-      formData.append('username', username.trim());
-      formData.append('password', password);
-      const data = await apiPost('/api/auth/login', formData, { 'Content-Type': 'application/x-www-form-urlencoded' });
+      const data = await apiPost('/api/auth/login', { username: username.trim(), password });
       login(data.access_token);
       navigate('/', { replace: true });
     } catch (err) {

@@ -12,7 +12,8 @@ export async function apiFetch(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  if (!(options.body instanceof FormData)) {
+  // Only set JSON content-type if body is not FormData and not already set
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -34,10 +35,12 @@ export async function apiGet(path) {
   return res.json();
 }
 
-export async function apiPost(path, body) {
+export async function apiPost(path, body, options = {}) {
+  const isFormData = body instanceof URLSearchParams || body instanceof FormData;
   const res = await apiFetch(path, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: isFormData ? body : JSON.stringify(body),
+    headers: options.headers || {},
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

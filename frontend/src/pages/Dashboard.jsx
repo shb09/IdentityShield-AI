@@ -13,15 +13,10 @@ export default function Dashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const [statsRes, casesRes] = await Promise.all([
-          apiGet('/api/dashboard/stats'),
-          apiGet('/api/screening?limit=5')
-        ]);
-        if (statsRes.ok) setStats(await statsRes.json());
-        if (casesRes.ok) {
-          const data = await casesRes.json();
-          setRecent(Array.isArray(data) ? data : data.cases || []);
-        }
+        const statsData = await apiGet('/api/dashboard/stats');
+        setStats(statsData);
+        const casesData = await apiGet('/api/cases?limit=5');
+        setRecent(Array.isArray(casesData) ? casesData : casesData.cases || []);
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -38,7 +33,7 @@ export default function Dashboard() {
     );
   }
 
-  const s = stats || { total_screenings: 0, high_risk_count: 0, medium_risk_count: 0, low_risk_count: 0, avg_risk_score: 0 };
+  const s = stats || { total_screenings: 0, high_risk: 0, medium_risk: 0, low_risk: 0, avg_risk_score: 0 };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -56,8 +51,8 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatusCard title="Total Screenings" value={s.total_screenings} icon={FileSearch} color="var(--accent)" />
-        <StatusCard title="High Risk" value={s.high_risk_count} icon={AlertTriangle} color="var(--danger)" />
-        <StatusCard title="Low Risk" value={s.low_risk_count} icon={CheckCircle} color="var(--success)" />
+        <StatusCard title="High Risk" value={s.high_risk} icon={AlertTriangle} color="var(--danger)" />
+        <StatusCard title="Low Risk" value={s.low_risk} icon={CheckCircle} color="var(--success)" />
         <StatusCard title="Avg Risk Score" value={Math.round(s.avg_risk_score || 0)} icon={TrendingUp} color="var(--accent)" />
       </div>
 
@@ -66,9 +61,9 @@ export default function Dashboard() {
         <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Risk Distribution</h3>
         <div className="space-y-3">
           {[
-            { label: 'High Risk', count: s.high_risk_count, total: s.total_screenings, color: 'var(--danger)' },
-            { label: 'Medium Risk', count: s.medium_risk_count, total: s.total_screenings, color: 'var(--warning)' },
-            { label: 'Low Risk', count: s.low_risk_count, total: s.total_screenings, color: 'var(--success)' },
+            { label: 'High Risk', count: s.high_risk, total: s.total_screenings, color: 'var(--danger)' },
+            { label: 'Medium Risk', count: s.medium_risk, total: s.total_screenings, color: 'var(--warning)' },
+            { label: 'Low Risk', count: s.low_risk, total: s.total_screenings, color: 'var(--success)' },
           ].map(item => {
             const pct = item.total > 0 ? (item.count / item.total) * 100 : 0;
             return (
