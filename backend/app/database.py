@@ -1,4 +1,6 @@
 import os
+import re
+from urllib.parse import quote_plus
 from motor.motor_asyncio import AsyncIOMotorClient
 
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
@@ -8,9 +10,25 @@ client: AsyncIOMotorClient = None
 db = None
 
 
+def _encode_mongodb_url(url: str) -> str:
+    """Auto-encode username/password in MongoDB URI if they contain special chars."""
+    # Match mongodb+srv://user:pass@host pattern
+    pattern = r'(mongodb(?:\+srv)?://)([^:]+):([^@]+)(@.*)'
+    match = re.match(pattern, url)
+    if match:
+        prefix, user, password, rest = match.groups()
+        # Only encode if needed
+        if any(c in user + password for c in '@:/%?#[]'):
+            user = quote_plus(user)
+            password = quote_plus(password)
+            return f'{prefix}{user}:{password}{rest}'
+    return url
+
+
 async def connect_db():
     global client, db
-    client = AsyncIOMotorClient(MONGODB_URL)
+    encoded_url = _encode_mongodb_url(MONGODB_URL)
+    client = AsyncIOMotorClient(encoded_url)
     db = client[DATABASE_NAME]
 
     # Create indexes
