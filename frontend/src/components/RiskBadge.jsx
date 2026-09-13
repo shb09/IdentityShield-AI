@@ -1,31 +1,36 @@
 import React from 'react';
-
-const riskConfig = {
-  LOW: { color: 'var(--success)', label: 'LOW RISK' },
-  MEDIUM: { color: 'var(--warning)', label: 'MEDIUM RISK' },
-  HIGH: { color: 'var(--danger)', label: 'HIGH RISK' },
-};
+import { Shield, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function RiskBadge({ level, score, size = 'md' }) {
-  const config = riskConfig[level] || riskConfig.LOW;
+  const normalized = (level || '').toUpperCase();
+  const isHigh = normalized === 'HIGH';
+  const isMedium = normalized === 'MEDIUM';
+  const isLow = normalized === 'LOW';
 
-  if (size === 'lg') {
-    return (
-      <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-2xl" style={{ background: `color-mix(in srgb, ${config.color} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${config.color} 20%, transparent)` }}>
-        <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: config.color, boxShadow: `0 0 12px ${config.color}` }} />
-        <span className="text-lg font-bold" style={{ color: config.color }}>{config.label}</span>
-        {score !== undefined && (
-          <span className="text-base font-mono opacity-60" style={{ color: config.color }}>{score}/100</span>
-        )}
-      </div>
-    );
-  }
+  const config = {
+    HIGH: { bg: 'rgba(239, 68, 68, 0.08)', color: 'var(--danger)', border: 'rgba(239, 68, 68, 0.15)', Icon: AlertTriangle, label: 'HIGH RISK' },
+    MEDIUM: { bg: 'rgba(245, 158, 11, 0.08)', color: 'var(--warning)', border: 'rgba(245, 158, 11, 0.15)', Icon: AlertCircle, label: 'MEDIUM RISK' },
+    LOW: { bg: 'rgba(16, 185, 129, 0.08)', color: 'var(--success)', border: 'rgba(16, 185, 129, 0.15)', Icon: CheckCircle, label: 'LOW RISK' },
+  }[normalized] || { bg: 'var(--accent-glow)', color: 'var(--accent)', border: 'var(--border-active)', Icon: Shield, label: 'UNKNOWN' };
+
+  const { bg, color, border, Icon, label } = config;
+
+  const sizes = {
+    sm: 'px-2.5 py-1 text-[10px] gap-1',
+    md: 'px-3 py-1.5 text-xs gap-1.5',
+    lg: 'px-4 py-2 text-sm gap-2',
+  };
 
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold" style={{ background: `color-mix(in srgb, ${config.color} 10%, transparent)`, color: config.color, border: `1px solid color-mix(in srgb, ${config.color} 15%, transparent)` }}>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ background: config.color }} />
-      {config.label}
-      {score !== undefined && <span className="ml-0.5 opacity-60">{score}</span>}
+    <span
+      className={`inline-flex items-center font-semibold rounded-lg ${sizes[size]}`}
+      style={{ background: bg, color, border: `1px solid ${border}` }}
+    >
+      <Icon className={size === 'sm' ? 'w-3 h-3' : size === 'lg' ? 'w-4 h-4' : 'w-3.5 h-3.5'} />
+      {label}
+      {score !== undefined && (
+        <span className="font-bold ml-0.5">{Math.round(score)}</span>
+      )}
     </span>
   );
 }

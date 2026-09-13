@@ -1,34 +1,23 @@
 import React from 'react';
-import { CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-const statusConfig = {
-  PASS: { icon: CheckCircle, color: 'var(--success)', badge: 'badge-success' },
-  MATCH: { icon: CheckCircle, color: 'var(--success)', badge: 'badge-success' },
-  WARNING: { icon: AlertTriangle, color: 'var(--warning)', badge: 'badge-warning' },
-  POSSIBLE_MATCH: { icon: AlertTriangle, color: 'var(--warning)', badge: 'badge-warning' },
-  FAIL: { icon: XCircle, color: 'var(--danger)', badge: 'badge-danger' },
-  SUSPICIOUS: { icon: XCircle, color: 'var(--danger)', badge: 'badge-danger' },
-  MISMATCH: { icon: XCircle, color: 'var(--danger)', badge: 'badge-danger' },
-  NOT_DETECTED: { icon: Clock, color: 'var(--text-muted)', badge: 'badge-info' },
-};
-
-export default function StatusCard({ title, status, detail, children }) {
-  const config = statusConfig[status] || statusConfig.PASS;
-  const Icon = config.icon;
-
+export default function StatusCard({ title, value, subtitle, icon: Icon, trend, color = 'var(--accent)' }) {
   return (
-    <div className="glass-card overflow-hidden" style={{ background: 'var(--gradient-card)' }}>
-      <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border-glass)' }}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${config.badge}`}>
-            <Icon className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-bold">{status}</span>
-          </div>
+    <div className="glass-card glass-card-hover p-5" style={{ background: 'var(--gradient-card)' }}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}10`, color }}>
+          <Icon className="w-5 h-5" />
         </div>
-        {detail && <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{detail}</p>}
+        {trend !== undefined && (
+          <div className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: trend > 0 ? 'var(--success)' : trend < 0 ? 'var(--danger)' : 'var(--text-muted)' }}>
+            {trend > 0 ? <TrendingUp className="w-3 h-3" /> : trend < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
+            {Math.abs(trend)}%
+          </div>
+        )}
       </div>
-      {children && <div className="px-5 py-4">{children}</div>}
+      <p className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>{value}</p>
+      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{title}</p>
+      {subtitle && <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>}
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { apiUpload } from '../api';
-import { Upload, Camera, Scan, FileText, User, X, CheckCircle, Loader2, Shield, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Camera, Scan, FileText, User, X, CheckCircle, Loader2, Shield, AlertCircle, Clock, ChevronRight } from 'lucide-react';
 
 const documentTypes = [
   { value: 'passport', label: 'Passport', icon: FileText },
@@ -26,6 +26,7 @@ export default function NewScreening() {
   const docInputRef = useRef(null);
   const visaInputRef = useRef(null);
   const faceInputRef = useRef(null);
+  const abortRef = useRef(false);
 
   const [docType, setDocType] = useState('passport');
   const [docFile, setDocFile] = useState(null);
@@ -63,6 +64,7 @@ export default function NewScreening() {
     setCompletedSteps([]);
     setCurrentStep(0);
     setElapsed(0);
+    abortRef.current = false;
 
     const formData = new FormData();
     formData.append('document_type', docType);
@@ -70,32 +72,65 @@ export default function NewScreening() {
     if (visaFile) formData.append('visa', visaFile);
     if (faceFile) formData.append('face', faceFile);
 
-    // Progress animation
+    // Timer for elapsed seconds
+    const timerInterval = setInterval(() => {
+      setElapsed(prev => prev + 1);
+    }, 1000);
+
+    // Progress simulation - only advance ONE step every 2 seconds
+    // This gives the API time to actually process
     let stepIndex = 0;
     const progressInterval = setInterval(() => {
-      setElapsed(prev => prev + 1);
+      if (abortRef.current) {
+        clearInterval(progressInterval);
+        return;
+      }
       if (stepIndex < processingSteps.length) {
         setCurrentStep(stepIndex);
         setCompletedSteps(prev => [...prev, processingSteps[stepIndex].key]);
         stepIndex++;
       }
-    }, 800);
+    }, 2000);
 
     try {
       const result = await apiUpload('/api/screen', formData);
       clearInterval(progressInterval);
+      clearInterval(timerInterval);
+
+      if (abortRef.current) return;
+
+      // Mark all steps as completed
       setCompletedSteps(processingSteps.map(s => s.key));
       setCurrentStep(processingSteps.length);
-      setTimeout(() => navigate(`/screening/${result.screening_id}`), 500);
+
+      // Wait a moment then navigate
+      await new Promise(r => setTimeout(r, 600));
+
+      if (!abortRef.current && result?.screening_id) {
+        navigate(`/screening/${result.screening_id}`, { replace: true });
+      }
     } catch (err) {
       clearInterval(progressInterval);
-      setError(err.message || 'Screening failed. The server may be waking up from sleep — please try again in 30 seconds.');
+      clearInterval(timerInterval);
+      if (abortRef.current) return;
+
+      const msg = err.message || 'Screening failed.';
+      const isTimeout = msg.includes('Failed to fetch') || msg.includes('timeout') || msg.includes('network');
+      setError(isTimeout
+        ? 'Server is waking up from sleep. Please wait 30 seconds and try again.'
+        : msg
+      );
       setProcessing(false);
       setCurrentStep(-1);
       setCompletedSteps([]);
       setElapsed(0);
     }
   };
+
+  // Cleanup on unmount
+  const componentWillUnmount = useCallback(() => {
+    abortRef.current = true;
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -141,15 +176,15 @@ export default function NewScreening() {
             {docPreview ? (
               <div className="relative">
                 <img src={docPreview} alt="Document" className="w-full h-48 object-contain rounded-xl" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-card)' }} />
-                <button onClick={() => removeFile(setDocFile, setDocPreview, docInputRef)} className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--danger)', color: 'white' }}>
+                <button onClick={() => removeFile(setDocFile, setDocPreview, docInputRef)} className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--danger)', color: 'white' }}>
                   <X className="w-3.5 h-3.5" />
                 </button>
                 <p className="text-[11px] mt-2 ml-1" style={{ color: 'var(--text-muted)' }}>{docFile?.name}</p>
               </div>
             ) : (
               <button onClick={() => docInputRef.current?.click()} className="w-full h-48 rounded-xl flex flex-col items-center justify-center transition-all duration-200" style={{ border: '2px dashed var(--border-card)', color: 'var(--text-muted)', background: 'var(--bg-input)' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-active)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-card)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-active)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-card)'; }}
               >
                 <Upload className="w-8 h-8 mb-2 opacity-40" />
                 <p className="text-xs font-medium">Click to upload document</p>
@@ -267,13 +302,18 @@ export default function NewScreening() {
                   );
                 })}
               </div>
+              {elapsed > 10 && (
+                <p className="text-[11px] mt-3 text-center" style={{ color: 'var(--text-muted)' }}>
+                  Server is processing... This may take up to 30s on first request.
+                </p>
+              )}
             </div>
           )}
 
           {/* Note */}
           <div className="glass-card px-4 py-3" style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.15)' }}>
             <p className="text-[11px] leading-relaxed" style={{ color: '#f59e0b' }}>
-              <strong>Note:</strong> This is an AI-assisted screening tool. First request may take up to 30s while the server wakes up.
+              <strong>Note:</strong> First request may take up to 30s while the server wakes up from sleep.
             </p>
           </div>
         </div>

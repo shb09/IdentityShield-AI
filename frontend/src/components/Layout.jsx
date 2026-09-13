@@ -1,184 +1,158 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
-import { Shield, LayoutDashboard, Scan, History, LogOut, User, Sun, Moon, Palette, ChevronRight } from 'lucide-react';
+import { Shield, LayoutDashboard, FileSearch, History, LogOut, Sun, Moon, Palette, Menu, X, ChevronRight } from 'lucide-react';
+
+const navItems = [
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/screening/new', icon: FileSearch, label: 'New Screening' },
+  { to: '/history', icon: History, label: 'History' },
+];
 
 const themes = [
-  { id: 'deep-blue', label: 'Deep Blue', icon: Palette },
   { id: 'light', label: 'Light', icon: Sun },
-  { id: 'dark', label: 'Dark', icon: Moon },
+  { id: 'deep-blue', label: 'Deep Blue', icon: Moon },
+  { id: 'dark', label: 'Dark', icon: Palette },
 ];
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, theme, setTheme } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'deep-blue');
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [themeOpen, setThemeOpen] = React.useState(false);
 
-  useEffect(() => {
-    document.body.className = `theme-${theme}`;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  const handleLogout = () => { logout(); navigate('/login', { replace: true }); };
 
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/screening/new', label: 'New Screening', icon: Scan },
-    { path: '/history', label: 'History', icon: History },
-  ];
+  const SidebarContent = ({ mobile = false }) => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="p-5 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-gradient)', boxShadow: '0 2px 12px var(--accent-glow)' }}>
+          <Shield className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-sm font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>IdentityShield AI</h1>
+          <p className="text-[10px] font-medium tracking-widest uppercase" style={{ color: 'var(--text-muted)' }}>Smart India Hackathon</p>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5">
+        {navItems.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
+            onClick={() => mobile && setMobileOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive ? 'text-white' : ''
+              }`
+            }
+            style={({ isActive }) => ({
+              background: isActive ? 'var(--accent-gradient)' : 'transparent',
+              color: isActive ? 'white' : 'var(--text-secondary)',
+              boxShadow: isActive ? '0 2px 12px var(--accent-glow)' : 'none',
+            })}
+          >
+            <item.icon className="w-4 h-4" />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Theme */}
+      <div className="px-3 pb-2 relative">
+        <button
+          onClick={() => setThemeOpen(!themeOpen)}
+          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium w-full transition-all duration-200"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <Palette className="w-4 h-4" />
+          Theme
+          <ChevronRight className={`w-3 h-3 ml-auto transition-transform duration-200 ${themeOpen ? 'rotate-90' : ''}`} />
+        </button>
+        {themeOpen && (
+          <div className="absolute bottom-full left-3 right-3 mb-2 p-1.5 rounded-xl animate-fade-in" style={{ background: 'var(--bg-card-solid)', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-lg)' }}>
+            {themes.map(t => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => { setTheme(t.id); setThemeOpen(false); }}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium w-full transition-all duration-150"
+                  style={{
+                    background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
+                    color: theme === t.id ? 'var(--accent)' : 'var(--text-secondary)',
+                  }}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {t.label}
+                  {theme === t.id && <div className="w-1.5 h-1.5 rounded-full ml-auto" style={{ background: 'var(--accent)' }} />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* User */}
+      <div className="p-3 mt-auto" style={{ borderTop: '1px solid var(--border-card)' }}>
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'var(--bg-input)' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ background: 'var(--accent-gradient)' }}>
+            {user?.username?.charAt(0)?.toUpperCase() || '?'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{user?.username || 'Unknown'}</p>
+            <p className="text-[10px] font-medium uppercase" style={{ color: 'var(--text-muted)' }}>{user?.role || 'user'}</p>
+          </div>
+          <button onClick={handleLogout} className="p-1.5 rounded-lg transition-all duration-200" style={{ color: 'var(--text-muted)' }} title="Logout"
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--bg-deep)' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50" style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border-glass)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center animate-glow" style={{ background: 'var(--accent-gradient)' }}>
-                  <Shield className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>IdentityShield AI</h1>
-                <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>Document Screening System</p>
-              </div>
-            </div>
+      {/* Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 bottom-0 w-60 hidden lg:flex flex-col z-30" style={{ background: 'var(--bg-card-solid)', borderRight: '1px solid var(--border-card)', boxShadow: 'var(--shadow-xs)' }}>
+        <SidebarContent />
+      </aside>
 
-            {/* Right Side */}
-            <div className="flex items-center gap-3">
-              {/* Theme Switcher */}
-              <div className="hidden sm:flex items-center gap-0.5 p-1 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
-                {themes.map(t => {
-                  const Icon = t.icon;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      className="p-1.5 rounded-lg transition-all duration-200"
-                      style={{
-                        background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
-                        color: theme === t.id ? 'var(--accent)' : 'var(--text-muted)',
-                      }}
-                      title={t.label}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* User */}
-              <div className="flex items-center gap-2.5 pl-3" style={{ borderLeft: '1px solid var(--border-card)' }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-glow)' }}>
-                  <User className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</p>
-                  <p className="text-[10px] capitalize" style={{ color: 'var(--text-muted)' }}>{user?.role}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => { logout(); navigate('/login'); }}
-                className="p-2 rounded-xl transition-all duration-200"
-                style={{ color: 'var(--text-muted)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.color = 'var(--danger)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center px-4 gap-3" style={{ background: 'var(--bg-card-solid)', borderBottom: '1px solid var(--border-card)', backdropFilter: 'blur(20px)' }}>
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--accent-gradient)' }}>
+            <Shield className="w-3.5 h-3.5 text-white" />
           </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-6">
-          {/* Sidebar */}
-          <aside className="hidden md:block w-56 flex-shrink-0">
-            <nav className="space-y-1">
-              {navItems.map(item => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path ||
-                  (item.path !== '/' && location.pathname.startsWith(item.path));
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-200"
-                    style={{
-                      background: isActive ? 'var(--accent-glow)' : 'transparent',
-                      color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
-                      border: isActive ? '1px solid var(--border-active)' : '1px solid transparent',
-                    }}
-                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.borderColor = 'var(--border-card)'; }}}
-                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.label}
-                    {isActive && <ChevronRight className="w-3 h-3 ml-auto" />}
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* Disclaimer */}
-            <div className="mt-8 p-4 rounded-xl" style={{ background: 'var(--gradient-card)', border: '1px solid var(--border-glass)' }}>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                <strong style={{ color: 'var(--accent-light)' }}>Disclaimer:</strong> AI-assisted screening tool. Final decisions remain with authorized personnel.
-              </p>
-            </div>
-
-            {/* Mobile Theme */}
-            <div className="mt-4 sm:hidden flex items-center gap-0.5 p-1 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
-              {themes.map(t => {
-                const Icon = t.icon;
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => setTheme(t.id)}
-                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-medium transition-all"
-                    style={{
-                      background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
-                      color: theme === t.id ? 'var(--accent)' : 'var(--text-muted)',
-                    }}
-                  >
-                    <Icon className="w-3 h-3" />
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          {/* Mobile Bottom Nav */}
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderTop: '1px solid var(--border-glass)' }}>
-            <div className="flex justify-around py-2 px-4">
-              {navItems.map(item => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all"
-                    style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)' }}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">{item.label.split(' ')[0]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 pb-20 md:pb-0 animate-fade-in">
-            <Outlet />
-          </main>
+          <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>IdentityShield AI</span>
         </div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 animate-slide-up" style={{ background: 'var(--bg-card-solid)', boxShadow: 'var(--shadow-lg)' }}>
+            <SidebarContent mobile />
+          </aside>
+        </div>
+      )}
+
+      {/* Main */}
+      <main className="lg:ml-60 min-h-screen pt-14 lg:pt-0">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

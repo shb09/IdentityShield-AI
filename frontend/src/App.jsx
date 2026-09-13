@@ -1,54 +1,77 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { apiFetch, apiPost } from './api';
+import { apiGet } from './api';
+import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NewScreening from './pages/NewScreening';
-import ScreeningResult from './pages/ScreeningResult';
 import History from './pages/History';
-import Layout from './components/Layout';
+import ScreeningResult from './pages/ScreeningResult';
+import { Shield, Loader2 } from 'lucide-react';
 
 const AuthContext = createContext(null);
+export function useAuth() { return useContext(AuthContext); }
 
-export function useAuth() {
-  return useContext(AuthContext);
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-mesh" style={{ background: 'var(--bg-deep)' }}>
+      <div className="flex flex-col items-center gap-4 animate-fade-in">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'var(--accent-gradient)', boxShadow: '0 0 30px var(--accent-glow)' }}>
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Loading IdentityShield AI...</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function App() {
-  const [user, setUser] = useState(null);
+function ProtectedRoute({ children }) {
+  const { token } = useAuth();
+  return token ? children : <Navigate to="/login" replace />;
+}
+
+export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setAuthLoading(false);
-        return;
-      }
+    document.documentElement.className = theme === 'light' ? '' : `theme-${theme}`;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!token) { setAuthLoading(false); setUser(null); return; }
+    let cancelled = false;
+    (async () => {
       try {
-        const res = await apiFetch('/api/auth/me');
-        if (res.ok) {
+        const res = await apiGet('/api/auth/me');
+        if (!cancelled && res.ok) {
           const data = await res.json();
           setUser(data);
-        } else {
-          localStorage.removeItem('token');
+        } else if (!cancelled) {
           setToken(null);
+          localStorage.removeItem('token');
+          setUser(null);
         }
       } catch {
-        // Keep session on network error
+        if (!cancelled) { /* keep token, don't force logout on network error */ }
       } finally {
-        setAuthLoading(false);
+        if (!cancelled) setAuthLoading(false);
       }
-    };
-    verifyToken();
-  }, []);
+    })();
+    return () => { cancelled = true; };
+  }, [token]);
 
-  const login = async (username, password) => {
-    const data = await apiPost('/api/auth/login', { username, password });
-    localStorage.setItem('token', data.access_token);
-    setToken(data.access_token);
-    setUser(data.user);
-    return data;
+  const login = (newToken) => {
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
   };
 
   const logout = () => {
@@ -57,35 +80,16 @@ function App() {
     setUser(null);
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-mesh" style={{ background: 'var(--bg-deep)' }}>
-        <div className="text-center animate-fade-in">
-          <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full animate-spin-slow" style={{ border: '2px solid var(--border-active)', borderTopColor: 'var(--accent)' }} />
-            <div className="absolute inset-2 rounded-full animate-spin" style={{ border: '2px solid transparent', borderBottomColor: 'var(--accent-light)' }} />
-          </div>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Verifying credentials...</p>
-        </div>
-      </div>
-    );
-  }
+  if (authLoading) return <LoadingScreen />;
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ token, user, login, logout, theme, setTheme }}>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-          <Route path="/" element={user ? <Layout /> : <Navigate to="/login" />}>
-            <Route index element={<Dashboard />} />
-            <Route path="screening/new" element={<NewScreening />} />
-            <Route path="screening/:id" element={<ScreeningResult />} />
-            <Route path="history" element={<History />} />
-          </Route>
+          <Route path="/login" element={!token ? <Login /> : <Navigate to="/" replace />} />
+          <Route path="/*" element={<ProtectedRoute><Layout /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>
   );
 }
-
-export default App;

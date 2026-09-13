@@ -1,57 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../App';
+import { Link } from 'react-router-dom';
 import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
-import { Search, Clock, ChevronRight, Filter } from 'lucide-react';
+import { Shield, Clock, Filter, Search, ChevronRight, FileText } from 'lucide-react';
+
+const documentLabels = {
+  passport: 'Passport', national_id: 'National ID', visa: 'Visa',
+  driving_license: 'Driving License', permit: 'Permit',
+};
 
 export default function History() {
-  const { token } = useAuth();
-  const navigate = useNavigate();
   const [cases, setCases] = useState([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    apiGet('/api/cases?limit=100')
-      .then(data => { setCases(data.cases || []); setTotal(data.total || 0); })
-      .catch(() => setCases([]))
-      .finally(() => setLoading(false));
-  }, [token]);
+    (async () => {
+      try {
+        const res = await apiGet('/api/screening?limit=100');
+        if (res.ok) {
+          const data = await res.json();
+          setCases(Array.isArray(data) ? data : data.cases || []);
+        }
+      } catch (err) {
+        console.error('Failed to load history:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const filtered = cases.filter(c => {
-    const matchSearch = !search || c.id.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === 'all' || c.risk_level === filter;
-    return matchSearch && matchFilter;
+    const matchFilter = filter === 'all' || (c.risk_level || '').toUpperCase() === filter;
+    const matchSearch = !search || (c.document_type || '').toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Screening History</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} total cases</p>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{cases.length} total screenings</p>
       </div>
 
       {/* Filters */}
-      <div className="glass-card p-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--gradient-card)' }}>
-        <div className="flex-1 relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-          <input type="text" placeholder="Search by Case ID..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="glass-input w-full pl-11 pr-4 py-2.5 text-xs" />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search document type..."
+            className="glass-input w-full pl-10 pr-4 py-2.5 text-sm" />
         </div>
-        <div className="flex gap-1.5">
-          {['all', 'LOW', 'MEDIUM', 'HIGH'].map(f => (
+        <div className="flex gap-1.5 p-1 rounded-xl" style={{ background: 'var(--bg-input)' }}>
+          {['all', 'HIGH', 'MEDIUM', 'LOW'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className="px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
               style={{
-                background: filter === f ? 'var(--accent-gradient)' : 'var(--bg-input)',
-                color: filter === f ? 'white' : 'var(--text-secondary)',
-                border: `1px solid ${filter === f ? 'transparent' : 'var(--border-card)'}`,
-                boxShadow: filter === f ? '0 4px 16px var(--accent-glow)' : 'none',
+                background: filter === f ? 'var(--accent-gradient)' : 'transparent',
+                color: filter === f ? 'white' : 'var(--text-muted)',
               }}>
-              {f === 'all' ? 'All' : f}
+              {f === 'all' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -59,44 +75,61 @@ export default function History() {
 
       {/* Table */}
       <div className="glass-card overflow-hidden" style={{ background: 'var(--gradient-card)' }}>
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Clock className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No cases found</p>
+            <FileText className="w-12 h-12 mx-auto mb-3 opacity-15" style={{ color: 'var(--text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              {cases.length === 0 ? 'No screenings yet' : 'No matching results'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-left">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
-                  {['Case ID', 'Date', 'Type', 'Risk Score', 'Level', ''].map((h, i) => (
-                    <th key={i} className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{h}</th>
-                  ))}
+                <tr style={{ borderBottom: '1px solid var(--border-card)' }}>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>ID</th>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Document</th>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Risk</th>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Score</th>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Date</th>
+                  <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((c, i) => (
-                  <tr key={c.id} onClick={() => navigate(`/screening/${c.id}`)} className="cursor-pointer transition-all duration-200"
-                    style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border-glass)' : 'none' }}
+                {filtered.map(c => (
+                  <tr key={c.id || c.screening_id} className="transition-colors duration-150"
+                    style={{ borderBottom: '1px solid var(--border-card)' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td className="px-5 py-3.5">
-                      <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{c.id}</span>
-                      {(c.demo_mode === 1 || c.demo_mode === true) && (
-                        <span className="ml-2 badge-info text-[9px] px-1.5 py-0.5 rounded-md font-bold">DEMO</span>
-                      )}
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                        #{(c.id || c.screening_id || '').slice(0, 8)}
+                      </span>
                     </td>
-                    <td className="px-5 py-3.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(c.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    <td className="px-5 py-3.5">
+                      <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {documentLabels[c.document_type] || c.document_type}
+                      </span>
                     </td>
-                    <td className="px-5 py-3.5 text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{c.document_type?.replace('_', ' ')}</td>
-                    <td className="px-5 py-3.5"><span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{c.risk_score}/100</span></td>
-                    <td className="px-5 py-3.5"><RiskBadge level={c.risk_level} score={c.risk_score} /></td>
-                    <td className="px-5 py-3.5"><ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} /></td>
+                    <td className="px-5 py-3.5"><RiskBadge level={c.risk_level} size="sm" /></td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{Math.round(c.risk_score || 0)}</span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                          {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <Link to={`/screening/${c.id || c.screening_id}`}
+                        className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-all duration-200"
+                        style={{ color: 'var(--accent)', background: 'var(--accent-glow)' }}>
+                        View <ChevronRight className="w-3 h-3" />
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

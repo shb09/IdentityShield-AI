@@ -1,40 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../App';
+import { Link } from 'react-router-dom';
 import { apiGet } from '../api';
+import StatusCard from '../components/StatusCard';
 import RiskBadge from '../components/RiskBadge';
-import { Scan, ShieldCheck, AlertTriangle, XCircle, Clock, ArrowRight, BarChart3, Plus, Zap, TrendingUp } from 'lucide-react';
+import { FileSearch, AlertTriangle, CheckCircle, Clock, Plus, ArrowRight, Shield, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
-  const { token } = useAuth();
-  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+  const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet('/api/dashboard/stats')
-      .then(data => setStats(data))
-      .catch(() => setStats({ total_screenings: 3, low_risk: 1, medium_risk: 0, high_risk: 2, recent_cases: [] }))
-      .finally(() => setLoading(false));
-  }, [token]);
+    (async () => {
+      try {
+        const [statsRes, casesRes] = await Promise.all([
+          apiGet('/api/dashboard/stats'),
+          apiGet('/api/screening?limit=5')
+        ]);
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (casesRes.ok) {
+          const data = await casesRes.json();
+          setRecent(Array.isArray(data) ? data : data.cases || []);
+        }
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-32">
-        <div className="text-center">
-          <div className="w-10 h-10 border-2 rounded-full animate-spin mx-auto mb-4" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Loading dashboard...</p>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
       </div>
     );
   }
 
-  const statCards = [
-    { label: 'Total Screenings', value: stats?.total_screenings || 0, icon: BarChart3, gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-    { label: 'Low Risk', value: stats?.low_risk || 0, icon: ShieldCheck, gradient: 'linear-gradient(135deg, #10b981, #34d399)' },
-    { label: 'Medium Risk', value: stats?.medium_risk || 0, icon: AlertTriangle, gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
-    { label: 'High Risk', value: stats?.high_risk || 0, icon: XCircle, gradient: 'linear-gradient(135deg, #f43f5e, #fb7185)' },
-  ];
+  const s = stats || { total_screenings: 0, high_risk_count: 0, medium_risk_count: 0, low_risk_count: 0, avg_risk_score: 0 };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -42,124 +46,89 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Dashboard</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Overview of screening operations</p>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Identity verification overview</p>
         </div>
-        <button
-          onClick={() => navigate('/screening/new')}
-          className="btn-primary flex items-center gap-2 px-5 py-2.5 text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          New Screening
-        </button>
+        <Link to="/screening/new" className="btn-primary px-5 py-2.5 text-sm flex items-center gap-2">
+          <Plus className="w-4 h-4" /> New Screening
+        </Link>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {statCards.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={i}
-              className="glass-card p-4 transition-all duration-300 cursor-pointer"
-              style={{ animationDelay: `${i * 80}ms`, background: 'var(--gradient-card)' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-active)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--shadow-glow)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-card)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: stat.gradient }}>
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{stat.value}</p>
-                  <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatusCard title="Total Screenings" value={s.total_screenings} icon={FileSearch} color="var(--accent)" />
+        <StatusCard title="High Risk" value={s.high_risk_count} icon={AlertTriangle} color="var(--danger)" />
+        <StatusCard title="Low Risk" value={s.low_risk_count} icon={CheckCircle} color="var(--success)" />
+        <StatusCard title="Avg Risk Score" value={Math.round(s.avg_risk_score || 0)} icon={TrendingUp} color="var(--accent)" />
       </div>
 
       {/* Risk Distribution */}
-      <div className="glass-card p-5" style={{ background: 'var(--gradient-card)' }}>
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Risk Distribution</h2>
-        </div>
+      <div className="glass-card p-6" style={{ background: 'var(--gradient-card)' }}>
+        <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Risk Distribution</h3>
         <div className="space-y-3">
           {[
-            { label: 'Low Risk', count: stats?.low_risk || 0, color: '#10b981', total: stats?.total_screenings || 1 },
-            { label: 'Medium Risk', count: stats?.medium_risk || 0, color: '#f59e0b', total: stats?.total_screenings || 1 },
-            { label: 'High Risk', count: stats?.high_risk || 0, color: '#f43f5e', total: stats?.total_screenings || 1 },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="text-xs w-20 font-medium" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
-              <div className="flex-1 h-7 rounded-lg overflow-hidden" style={{ background: 'var(--bg-input)' }}>
-                <div
-                  className="h-full rounded-lg transition-all duration-1000 ease-out"
-                  style={{ width: `${((item.count / item.total) * 100) || 0}%`, background: item.color, boxShadow: `0 0 12px ${item.color}33` }}
-                />
+            { label: 'High Risk', count: s.high_risk_count, total: s.total_screenings, color: 'var(--danger)' },
+            { label: 'Medium Risk', count: s.medium_risk_count, total: s.total_screenings, color: 'var(--warning)' },
+            { label: 'Low Risk', count: s.low_risk_count, total: s.total_screenings, color: 'var(--success)' },
+          ].map(item => {
+            const pct = item.total > 0 ? (item.count / item.total) * 100 : 0;
+            return (
+              <div key={item.label} className="flex items-center gap-3">
+                <span className="text-xs font-medium w-24" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: item.color }} />
+                </div>
+                <span className="text-xs font-bold w-8 text-right" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
               </div>
-              <span className="text-xs font-bold w-6 text-right" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Recent Screenings */}
-      <div className="glass-card overflow-hidden" style={{ background: 'var(--gradient-card)' }}>
-        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-glass)' }}>
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Screenings</h2>
-          <button onClick={() => navigate('/history')} className="text-xs font-semibold flex items-center gap-1 transition-colors" style={{ color: 'var(--accent)' }}>
-            View All <ArrowRight className="w-3 h-3" />
-          </button>
+      {/* Recent Cases */}
+      <div className="glass-card p-6" style={{ background: 'var(--gradient-card)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Cases</h3>
+          <Link to="/history" className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--accent)' }}>
+            View all <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
-
-        {(!stats?.recent_cases || stats.recent_cases.length === 0) ? (
-          <div className="px-5 py-14 text-center">
-            <Clock className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
-            <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>No screenings yet</p>
-            <button onClick={() => navigate('/screening/new')} className="btn-primary px-4 py-2 text-xs">
-              Start first screening
-            </button>
+        {recent.length === 0 ? (
+          <div className="text-center py-10">
+            <Shield className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No screenings yet</p>
+            <Link to="/screening/new" className="btn-primary inline-flex items-center gap-1.5 mt-4 px-4 py-2 text-xs">
+              <Plus className="w-3.5 h-3.5" /> Start First Screening
+            </Link>
           </div>
         ) : (
-          <div>
-            {stats.recent_cases.map((c, i) => (
-              <button
-                key={c.id}
-                onClick={() => navigate(`/screening/${c.id}`)}
-                className="w-full px-5 py-3.5 flex items-center justify-between transition-all duration-200 text-left"
-                style={{ borderBottom: i < stats.recent_cases.length - 1 ? '1px solid var(--border-glass)' : 'none' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          <div className="space-y-2">
+            {recent.map(c => (
+              <Link key={c.id || c.screening_id} to={`/screening/${c.id || c.screening_id}`}
+                className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200"
+                style={{ background: 'var(--bg-input)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.borderColor = 'var(--border-active)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-input)'; e.currentTarget.style.borderColor = 'transparent'; }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-card)' }}>
-                    <Scan className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${c.risk_level === 'HIGH' ? 'rgba(239,68,68,0.08)' : c.risk_level === 'MEDIUM' ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.08)'}`, color: c.risk_level === 'HIGH' ? 'var(--danger)' : c.risk_level === 'MEDIUM' ? 'var(--warning)' : 'var(--success)' }}>
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{c.document_type?.replace('_', ' ').toUpperCase()}</span>
+                    <RiskBadge level={c.risk_level} size="sm" />
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>{c.id}</p>
-                    <p className="text-[11px] capitalize mt-0.5" style={{ color: 'var(--text-muted)' }}>{c.document_type?.replace('_', ' ')}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Clock className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
+                    <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                      {c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Unknown'}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] hidden sm:block" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(c.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </span>
-                  <RiskBadge level={c.risk_level} score={c.risk_score} />
-                </div>
-              </button>
+                <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-muted)' }} />
+              </Link>
             ))}
           </div>
         )}
-      </div>
-
-      {/* System Status */}
-      <div className="glass-card px-5 py-3.5 flex items-center gap-3" style={{ background: 'var(--gradient-card)' }}>
-        <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--success)' }} />
-        <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
-          <strong style={{ color: 'var(--accent-light)' }}>All modules operational</strong> · OCR: Tesseract · Face: Histogram + Structural · Tampering: Image Forensics · Risk: Multi-signal Engine
-        </p>
       </div>
     </div>
   );
