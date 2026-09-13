@@ -3,8 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from contextlib import asynccontextmanager
+import shutil
 
-from app.config import UPLOAD_DIR
+from app.config import UPLOAD_DIR, BASE_DIR
 from app.database import connect_db, close_db, get_db
 from app.auth import hash_password
 from app.api.auth_routes import router as auth_router
@@ -37,12 +38,13 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(screening_router)
 
-# Serve uploaded files
+# Ensure uploads directory exists
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 async def create_demo_data():
-    """Create synthetic demo records if none exist."""
+    """Create synthetic demo records with images if none exist."""
     db = get_db()
     count = await db.screenings.count_documents({})
 
@@ -68,6 +70,19 @@ async def create_demo_data():
             "role": "officer",
             "created_at": "2026-09-06T00:00:00",
         })
+
+    # Copy demo images to uploads
+    demo_data_dir = BASE_DIR / "demo_data"
+    docs_dir = UPLOAD_DIR / "documents"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+
+    image_map = {}
+    for i in range(1, 4):
+        src = demo_data_dir / f"passport_sample_{i}.jpg"
+        dst = docs_dir / f"demo_passport_{i}.jpg"
+        if src.exists():
+            shutil.copy2(src, dst)
+            image_map[f"DEMO-00{i}"] = f"demo_passport_{i}.jpg"
 
     if count == 0:
         demo_records = [
@@ -127,7 +142,7 @@ async def create_demo_data():
                     "reasons": ["No significant risk indicators detected"],
                 },
                 "explanation": ["No significant risk indicators detected"],
-                "document_image": None,
+                "document_image": image_map.get("DEMO-001"),
                 "visa_image": None,
                 "face_image": None,
                 "demo_mode": True,
@@ -204,7 +219,7 @@ async def create_demo_data():
                     "Document shows signs of tampering",
                     "Found 2 suspicious regions",
                 ],
-                "document_image": None,
+                "document_image": image_map.get("DEMO-002"),
                 "visa_image": None,
                 "face_image": None,
                 "demo_mode": True,
@@ -271,7 +286,7 @@ async def create_demo_data():
                 "explanation": [
                     "Face mismatch between document and presented person",
                 ],
-                "document_image": None,
+                "document_image": image_map.get("DEMO-003"),
                 "visa_image": None,
                 "face_image": None,
                 "demo_mode": True,

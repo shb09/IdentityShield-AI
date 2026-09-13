@@ -8,32 +8,9 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-        },
-        surface: {
-          primary: 'var(--bg-primary)',
-          secondary: 'var(--bg-secondary)',
-          card: 'var(--bg-card)',
-          'card-hover': 'var(--bg-card-hover)',
-          input: 'var(--bg-input)',
-        },
-        border: {
-          DEFAULT: 'var(--border-color)',
-          active: 'var(--border-active)',
-        },
-        txt: {
-          primary: 'var(--text-primary)',
-          secondary: 'var(--text-secondary)',
-          muted: 'var(--text-muted)',
+          50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc',
+          400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca',
+          800: '#3730a3', 900: '#312e81',
         },
       },
       fontFamily: {
@@ -41,10 +18,16 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
-        'card': '0 0 0 1px rgb(0 0 0 / 0.03), 0 2px 4px rgb(0 0 0 / 0.04)',
-        'lifted': '0 0 0 1px rgb(0 0 0 / 0.03), 0 4px 12px rgb(0 0 0 / 0.06)',
-        'glow': '0 0 20px rgba(99, 102, 241, 0.3)',
+        'glow': '0 0 40px rgba(99, 102, 241, 0.15)',
+        'glow-lg': '0 0 60px rgba(99, 102, 241, 0.2)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.3)',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
       },
     },
   },

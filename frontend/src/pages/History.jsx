@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { apiGet } from '../api';
 import RiskBadge from '../components/RiskBadge';
-import { Search, Clock, ChevronRight } from 'lucide-react';
+import { Search, Clock, ChevronRight, Filter } from 'lucide-react';
 
 export default function History() {
   const { token } = useAuth();
@@ -30,26 +30,26 @@ export default function History() {
   return (
     <div className="space-y-5 animate-fade-in">
       <div>
-        <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Screening History</h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{total} total cases</p>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Screening History</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} total cases</p>
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl border shadow-sm p-3.5 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <div className="glass-card p-4 flex flex-col sm:flex-row gap-3" style={{ background: 'var(--gradient-card)' }}>
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
           <input type="text" placeholder="Search by Case ID..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-            style={{ background: 'var(--bg-input)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }} />
+            className="glass-input w-full pl-11 pr-4 py-2.5 text-xs" />
         </div>
         <div className="flex gap-1.5">
           {['all', 'LOW', 'MEDIUM', 'HIGH'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className="px-3 py-2 rounded-xl text-xs font-medium transition-all border"
+              className="px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200"
               style={{
-                background: filter === f ? 'var(--accent)' : 'var(--bg-input)',
+                background: filter === f ? 'var(--accent-gradient)' : 'var(--bg-input)',
                 color: filter === f ? 'white' : 'var(--text-secondary)',
-                borderColor: filter === f ? 'var(--accent)' : 'var(--border-color)',
+                border: `1px solid ${filter === f ? 'transparent' : 'var(--border-card)'}`,
+                boxShadow: filter === f ? '0 4px 16px var(--accent-glow)' : 'none',
               }}>
               {f === 'all' ? 'All' : f}
             </button>
@@ -58,38 +58,36 @@ export default function History() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <div className="glass-card overflow-hidden" style={{ background: 'var(--gradient-card)' }}>
         {loading ? (
-          <div className="flex items-center justify-center py-14">
-            <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--accent)' }} />
+          <div className="flex items-center justify-center py-16">
+            <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-14">
-            <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
+          <div className="text-center py-16">
+            <Clock className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No cases found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b" style={{ borderColor: 'var(--border-color)' }}>
-                  <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Case ID</th>
-                  <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Date</th>
-                  <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Type</th>
-                  <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Risk Score</th>
-                  <th className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Level</th>
-                  <th className="px-5 py-3"></th>
+                <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
+                  {['Case ID', 'Date', 'Type', 'Risk Score', 'Level', ''].map((h, i) => (
+                    <th key={i} className="text-left px-5 py-3 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ borderColor: 'var(--border-color)' }}>
-                {filtered.map(c => (
-                  <tr key={c.id} onClick={() => navigate(`/screening/${c.id}`)} className="cursor-pointer transition-colors"
+              <tbody>
+                {filtered.map((c, i) => (
+                  <tr key={c.id} onClick={() => navigate(`/screening/${c.id}`)} className="cursor-pointer transition-all duration-200"
+                    style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border-glass)' : 'none' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                     <td className="px-5 py-3.5">
                       <span className="text-xs font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{c.id}</span>
                       {(c.demo_mode === 1 || c.demo_mode === true) && (
-                        <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded-md font-bold" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>DEMO</span>
+                        <span className="ml-2 badge-info text-[9px] px-1.5 py-0.5 rounded-md font-bold">DEMO</span>
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-xs" style={{ color: 'var(--text-muted)' }}>

@@ -11,7 +11,10 @@ from app.services.tampering_service import run_tampering_detection
 from app.services.face_service import run_face_verification
 from app.services.risk_service import calculate_risk_score
 from app.config import MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES
+import traceback
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["screening"])
 
 
@@ -159,6 +162,7 @@ async def screen_document(
         }
 
     except Exception as e:
+        logger.error(f"Screening failed: {traceback.format_exc()}")
         await db.screenings.update_one(
             {"_id": screening_id},
             {"$set": {"status": "error"}}
@@ -180,7 +184,6 @@ async def list_cases(
     cases = await cursor.to_list(length=limit)
     total = await db.screenings.count_documents({})
 
-    # Convert _id to id for frontend
     for case in cases:
         case["id"] = case.pop("_id")
 
@@ -203,6 +206,7 @@ async def get_case(
 
     case["id"] = case.pop("_id")
 
+    # Always set document_image_url if document_image exists
     if case.get("document_image"):
         case["document_image_url"] = f"/api/uploads/documents/{case['document_image'].split('/')[-1]}"
 

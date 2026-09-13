@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
-import { Shield, LayoutDashboard, Scan, History, LogOut, User, Sun, Moon, Palette } from 'lucide-react';
+import { Shield, LayoutDashboard, Scan, History, LogOut, User, Sun, Moon, Palette, ChevronRight } from 'lucide-react';
 
 const themes = [
-  { id: 'deep-blue', label: 'Deep Blue', icon: Palette, color: '#312e81' },
-  { id: 'light', label: 'Light', icon: Sun, color: '#f8fafc' },
-  { id: 'dark', label: 'Dark', icon: Moon, color: '#020617' },
+  { id: 'deep-blue', label: 'Deep Blue', icon: Palette },
+  { id: 'light', label: 'Light', icon: Sun },
+  { id: 'dark', label: 'Dark', icon: Moon },
 ];
 
 export default function Layout() {
@@ -27,34 +27,37 @@ export default function Layout() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <header className="sticky top-0 z-40 border-b" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}>
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--bg-deep)' }}>
+      {/* Header */}
+      <header className="sticky top-0 z-50" style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--border-glass)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-glow" style={{ background: 'var(--accent)' }}>
-                <Shield className="w-5 h-5 text-white" />
+            {/* Logo */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center animate-glow" style={{ background: 'var(--accent-gradient)' }}>
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <h1 className="text-[15px] font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>IdentityShield AI</h1>
-                <p className="text-[11px] -mt-0.5 font-medium" style={{ color: 'var(--text-muted)' }}>Document Screening</p>
+                <h1 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>IdentityShield AI</h1>
+                <p className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>Document Screening System</p>
               </div>
             </div>
 
+            {/* Right Side */}
             <div className="flex items-center gap-3">
               {/* Theme Switcher */}
-              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+              <div className="hidden sm:flex items-center gap-0.5 p-1 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
                 {themes.map(t => {
                   const Icon = t.icon;
                   return (
                     <button
                       key={t.id}
                       onClick={() => setTheme(t.id)}
-                      className={`p-1.5 rounded-lg transition-all ${
-                        theme === t.id ? 'shadow-sm' : 'opacity-40 hover:opacity-70'
-                      }`}
+                      className="p-1.5 rounded-lg transition-all duration-200"
                       style={{
-                        background: theme === t.id ? 'var(--accent-bg)' : 'transparent',
+                        background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
                         color: theme === t.id ? 'var(--accent)' : 'var(--text-muted)',
                       }}
                       title={t.label}
@@ -65,25 +68,25 @@ export default function Layout() {
                 })}
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-bg)' }}>
+              {/* User */}
+              <div className="flex items-center gap-2.5 pl-3" style={{ borderLeft: '1px solid var(--border-card)' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-glow)' }}>
                   <User className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                 </div>
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-medium leading-tight" style={{ color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</p>
+                <div className="hidden sm:block">
+                  <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{user?.full_name || user?.username}</p>
                   <p className="text-[10px] capitalize" style={{ color: 'var(--text-muted)' }}>{user?.role}</p>
                 </div>
               </div>
-              <div className="w-px h-6 hidden sm:block" style={{ background: 'var(--border-color)' }} />
+
               <button
                 onClick={() => { logout(); navigate('/login'); }}
-                className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg transition-colors"
+                className="p-2 rounded-xl transition-all duration-200"
                 style={{ color: 'var(--text-muted)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.color = 'var(--danger)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Logout</span>
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -92,7 +95,8 @@ export default function Layout() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
-          <aside className="hidden md:block w-52 flex-shrink-0">
+          {/* Sidebar */}
+          <aside className="hidden md:block w-56 flex-shrink-0">
             <nav className="space-y-1">
               {navItems.map(item => {
                 const Icon = item.icon;
@@ -102,38 +106,41 @@ export default function Layout() {
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium transition-all duration-200"
                     style={{
-                      background: isActive ? 'var(--accent-bg)' : 'transparent',
+                      background: isActive ? 'var(--accent-glow)' : 'transparent',
                       color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                      border: isActive ? '1px solid var(--border-active)' : '1px solid transparent',
                     }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.borderColor = 'var(--border-card)'; }}}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}}
                   >
                     <Icon className="w-4 h-4" />
                     {item.label}
+                    {isActive && <ChevronRight className="w-3 h-3 ml-auto" />}
                   </button>
                 );
               })}
             </nav>
 
-            <div className="mt-8 p-3.5 rounded-xl border" style={{ background: 'var(--accent-bg)', borderColor: 'var(--border-color)' }}>
-              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--accent)' }}>
-                <strong>Disclaimer:</strong> AI-assisted screening. Final decision remains with authorized personnel.
+            {/* Disclaimer */}
+            <div className="mt-8 p-4 rounded-xl" style={{ background: 'var(--gradient-card)', border: '1px solid var(--border-glass)' }}>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--accent-light)' }}>Disclaimer:</strong> AI-assisted screening tool. Final decisions remain with authorized personnel.
               </p>
             </div>
 
-            {/* Mobile Theme Switcher */}
-            <div className="mt-4 sm:hidden flex items-center gap-1 p-1 rounded-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+            {/* Mobile Theme */}
+            <div className="mt-4 sm:hidden flex items-center gap-0.5 p-1 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)' }}>
               {themes.map(t => {
                 const Icon = t.icon;
                 return (
                   <button
                     key={t.id}
                     onClick={() => setTheme(t.id)}
-                    className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                      theme === t.id ? 'shadow-sm' : 'opacity-40'
-                    }`}
+                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[10px] font-medium transition-all"
                     style={{
-                      background: theme === t.id ? 'var(--accent-bg)' : 'transparent',
+                      background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
                       color: theme === t.id ? 'var(--accent)' : 'var(--text-muted)',
                     }}
                   >
@@ -145,7 +152,8 @@ export default function Layout() {
             </div>
           </aside>
 
-          <div className="md:hidden fixed bottom-0 left-0 right-0 border-t z-50" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', backdropFilter: 'blur(12px)' }}>
+          {/* Mobile Bottom Nav */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50" style={{ background: 'var(--bg-glass)', backdropFilter: 'blur(24px)', borderTop: '1px solid var(--border-glass)' }}>
             <div className="flex justify-around py-2 px-4">
               {navItems.map(item => {
                 const Icon = item.icon;
@@ -154,7 +162,7 @@ export default function Layout() {
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors"
+                    className="flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all"
                     style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)' }}
                   >
                     <Icon className="w-5 h-5" />
@@ -165,6 +173,7 @@ export default function Layout() {
             </div>
           </div>
 
+          {/* Main Content */}
           <main className="flex-1 min-w-0 pb-20 md:pb-0 animate-fade-in">
             <Outlet />
           </main>
