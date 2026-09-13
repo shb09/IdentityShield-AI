@@ -1,5 +1,4 @@
 import os
-import re
 from urllib.parse import quote_plus
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -12,17 +11,34 @@ db = None
 
 def _encode_mongodb_url(url: str) -> str:
     """Auto-encode username/password in MongoDB URI if they contain special chars."""
-    # Match mongodb+srv://user:pass@host pattern
-    pattern = r'(mongodb(?:\+srv)?://)([^:]+):([^@]+)(@.*)'
-    match = re.match(pattern, url)
-    if match:
-        prefix, user, password, rest = match.groups()
-        # Only encode if needed
-        if any(c in user + password for c in '@:/%?#[]'):
-            user = quote_plus(user)
-            password = quote_plus(password)
-            return f'{prefix}{user}:{password}{rest}'
-    return url
+    # Find the userinfo part between:// and @
+    if "://" not in url:
+        return url
+
+    prefix, rest = url.split("://", 1)
+
+    # Find the host part (after the last @ that's before the host)
+    # mongodb+srv://user:pass@host or mongodb+srv://user:p@ss@host
+    # We need to find the RIGHT @ that separates userinfo from host
+    at_index = rest.rfind("@")
+    if at_index == -1:
+        return url
+
+    userinfo = rest[:at_index]
+    host_part = rest[at_index + 1:]
+
+    # Split userinfo into user:password
+    if ":" not in userinfo:
+        return url
+
+    user, password = userinfo.split(":", 1)
+
+    # Encode if special chars present
+    if any(c in user + password for c in ":@/?#[]"):
+        user = quote_plus(user)
+        password = quote_plus(password)
+
+    return f"{prefix}://{user}:{password}@{host_part}"
 
 
 async def connect_db():
