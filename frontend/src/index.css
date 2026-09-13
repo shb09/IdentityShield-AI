@@ -116,9 +116,42 @@ html {
 }
 
 /* ═══════════════════════════════════════════
+   NEO THEME — Neo-Brutalism × Formal Light × Maximalism
+   ═══════════════════════════════════════════ */
+.theme-neo {
+  --bg-deep: #f0ece4;
+  --bg-surface: #faf8f5;
+  --bg-elevated: #ffffff;
+  --bg-input: #ebe7df;
+  --border: #1a1a1a;
+  --border-active: #0055ff;
+  --text-primary: #111111;
+  --text-secondary: #444444;
+  --text-muted: #888888;
+  --accent: #0055ff;
+  --accent-light: #3377ff;
+  --accent-glow: rgba(0, 85, 255, 0.12);
+  --gradient-1: linear-gradient(135deg, #0055ff, #0033cc);
+  --gradient-2: linear-gradient(135deg, #ff2d55, #cc0033);
+  --gradient-3: linear-gradient(135deg, #00cc88, #009966);
+  --gradient-4: linear-gradient(135deg, #ff8800, #ff2d55);
+  --gradient-5: linear-gradient(135deg, #00ccff, #0055ff);
+  --gradient-surface: linear-gradient(180deg, #faf8f5 0%, #f0ece4 100%);
+  --success: #00aa55;
+  --warning: #ff8800;
+  --danger: #ff2d55;
+  --shadow-sm: 3px 3px 0 #1a1a1a;
+  --shadow-md: 5px 5px 0 #1a1a1a;
+  --shadow-lg: 8px 8px 0 #1a1a1a;
+  --shadow-glow: 5px 5px 0 var(--accent);
+  --nav-bg: rgba(250, 248, 245, 0.95);
+  --neo-border: 2px solid #1a1a1a;
+}
+
+/* ═══════════════════════════════════════════
    BODY
    ═══════════════════════════════════════════ */
-:root, .theme-light, .theme-deep-blue, .theme-dark {
+:root, .theme-light, .theme-deep-blue, .theme-dark, .theme-neo {
   background: var(--bg-deep);
   color: var(--text-primary);
 }
@@ -314,6 +347,89 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ═══════════════════════════════════════════
+   NEO BRUTALIST OVERRIDES
+   ═══════════════════════════════════════════ */
+.theme-neo .card {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 4px 4px 0 #1a1a1a;
+  background: var(--bg-surface);
+}
+
+.theme-neo .card-hover:hover {
+  box-shadow: 6px 6px 0 var(--accent);
+  border-color: var(--accent);
+  transform: translate(-2px, -2px);
+}
+
+.theme-neo .input {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  background: var(--bg-surface);
+  box-shadow: 2px 2px 0 #1a1a1a;
+}
+
+.theme-neo .input:focus {
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent);
+}
+
+.theme-neo .btn {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #1a1a1a;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+}
+
+.theme-neo .btn::before { display: none; }
+
+.theme-neo .btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--accent);
+}
+
+.theme-neo .btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #1a1a1a;
+}
+
+.theme-neo .badge {
+  border: 1.5px solid currentColor;
+  border-radius: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 10px;
+}
+
+.theme-neo .badge-success { background: rgba(0,170,85,0.08); border-color: var(--success); }
+.theme-neo .badge-warning { background: rgba(255,136,0,0.08); border-color: var(--warning); }
+.theme-neo .badge-danger { background: rgba(255,45,85,0.08); border-color: var(--danger); }
+.theme-neo .badge-accent { background: rgba(0,85,255,0.08); border-color: var(--accent); }
+
+.theme-neo .divider {
+  height: 2px;
+  background: #1a1a1a;
+}
+
+.theme-neo .nav-tabs {
+  border: 2px solid #1a1a1a;
+  border-radius: 0;
+}
+
+.theme-neo ::selection {
+  background: var(--accent);
+  color: white;
 }
 
 /* ═══════════════════════════════════════════

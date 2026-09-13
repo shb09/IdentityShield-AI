@@ -11,6 +11,7 @@ const navItems = [
 
 const themes = [
   { id: 'light', label: 'Light', icon: Sun, gradient: 'linear-gradient(135deg, #f0f4ff, #e0e7ff)' },
+  { id: 'neo', label: 'Neo', icon: Zap, gradient: 'linear-gradient(135deg, #f0ece4, #faf8f5)' },
   { id: 'deep-blue', label: 'Deep Blue', icon: Moon, gradient: 'linear-gradient(135deg, #1e1b4b, #312e81)' },
   { id: 'dark', label: 'Midnight', icon: Palette, gradient: 'linear-gradient(135deg, #0f0f0f, #1a1a2e)' },
 ];
