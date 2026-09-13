@@ -3,9 +3,9 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export default function StatusCard({ title, value, subtitle, icon: Icon, trend, color = 'var(--accent)' }) {
   return (
-    <div className="glass-card glass-card-hover p-5" style={{ background: 'var(--gradient-card)' }}>
+    <div className="glass-card glass-card-hover p-5 interactive" style={{ background: 'var(--gradient-card)' }}>
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}10`, color }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}12`, color }}>
           <Icon className="w-5 h-5" />
         </div>
         {trend !== undefined && (

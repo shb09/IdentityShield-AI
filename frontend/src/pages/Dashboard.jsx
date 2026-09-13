@@ -28,7 +28,10 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-card)', borderTopColor: 'var(--accent)' }} />
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -37,26 +40,23 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Dashboard</h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Identity verification overview</p>
         </div>
-        <Link to="/screening/new" className="btn-primary px-5 py-2.5 text-sm flex items-center gap-2">
+        <Link to="/screening/new" className="btn-primary px-5 py-2.5 text-sm flex items-center gap-2 interactive">
           <Plus className="w-4 h-4" /> New Screening
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
         <StatusCard title="Total Screenings" value={s.total_screenings} icon={FileSearch} color="var(--accent)" />
         <StatusCard title="High Risk" value={s.high_risk} icon={AlertTriangle} color="var(--danger)" />
         <StatusCard title="Low Risk" value={s.low_risk} icon={CheckCircle} color="var(--success)" />
         <StatusCard title="Avg Risk Score" value={Math.round(s.avg_risk_score || 0)} icon={TrendingUp} color="var(--accent)" />
       </div>
 
-      {/* Risk Distribution */}
       <div className="glass-card p-6" style={{ background: 'var(--gradient-card)' }}>
         <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Risk Distribution</h3>
         <div className="space-y-3">
@@ -68,43 +68,42 @@ export default function Dashboard() {
             const pct = item.total > 0 ? (item.count / item.total) * 100 : 0;
             return (
               <div key={item.label} className="flex items-center gap-3">
-                <span className="text-xs font-medium w-24" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
-                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: item.color }} />
+                <span className="text-xs font-medium w-24 shrink-0" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
+                <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
+                  <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${Math.max(pct, 2)}%`, background: item.color }} />
                 </div>
-                <span className="text-xs font-bold w-8 text-right" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
+                <span className="text-xs font-bold w-8 text-right shrink-0" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Recent Cases */}
       <div className="glass-card p-6" style={{ background: 'var(--gradient-card)' }}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Cases</h3>
-          <Link to="/history" className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--accent)' }}>
+          <Link to="/history" className="text-xs font-medium flex items-center gap-1 interactive" style={{ color: 'var(--accent)' }}>
             View all <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
         {recent.length === 0 ? (
           <div className="text-center py-10">
-            <Shield className="w-10 h-10 mx-auto mb-3 opacity-20" style={{ color: 'var(--text-muted)' }} />
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No screenings yet</p>
-            <Link to="/screening/new" className="btn-primary inline-flex items-center gap-1.5 mt-4 px-4 py-2 text-xs">
+            <Shield className="w-12 h-12 mx-auto mb-3 opacity-15" style={{ color: 'var(--text-muted)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>No screenings yet</p>
+            <Link to="/screening/new" className="btn-primary inline-flex items-center gap-1.5 mt-4 px-5 py-2.5 text-xs interactive">
               <Plus className="w-3.5 h-3.5" /> Start First Screening
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 stagger">
             {recent.map(c => (
               <Link key={c.id || c.screening_id} to={`/screening/${c.id || c.screening_id}`}
-                className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200"
+                className="flex items-center gap-3 p-3 rounded-xl transition-all duration-200 interactive"
                 style={{ background: 'var(--bg-input)' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.borderColor = 'var(--border-active)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-input)'; e.currentTarget.style.borderColor = 'transparent'; }}
               >
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${c.risk_level === 'HIGH' ? 'rgba(239,68,68,0.08)' : c.risk_level === 'MEDIUM' ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.08)'}`, color: c.risk_level === 'HIGH' ? 'var(--danger)' : c.risk_level === 'MEDIUM' ? 'var(--warning)' : 'var(--success)' }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${c.risk_level === 'HIGH' ? 'rgba(239,68,68,0.1)' : c.risk_level === 'MEDIUM' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)'}`, color: c.risk_level === 'HIGH' ? 'var(--danger)' : c.risk_level === 'MEDIUM' ? 'var(--warning)' : 'var(--success)' }}>
                   <Shield className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
