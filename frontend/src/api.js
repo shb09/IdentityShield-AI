@@ -28,6 +28,7 @@ export async function apiGet(path) {
   const res = await apiFetch(path);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
+    console.error(`[API GET] ${path} failed:`, err);
     throw new Error(err.detail || `Request failed: ${res.status}`);
   }
   return res.json();
@@ -40,6 +41,7 @@ export async function apiPost(path, body) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
+    console.error(`[API POST] ${path} failed:`, err);
     throw new Error(err.detail || `Request failed: ${res.status}`);
   }
   return res.json();
@@ -52,6 +54,7 @@ export async function apiUpload(path, formData) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
+    console.error(`[API UPLOAD] ${path} failed:`, err);
     throw new Error(err.detail || `Request failed: ${res.status}`);
   }
   return res.json();

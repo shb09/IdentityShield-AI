@@ -109,7 +109,7 @@ def extract_fields_from_text(text: str) -> Dict[str, Any]:
 
 
 def calculate_ocr_confidence(fields: Dict[str, Any]) -> float:
-    detected = sum(1 for v in fields.values() if v != "Not detected" and v != "Not detected" and v)
+    detected = sum(1 for v in fields.values() if v and v != "Not detected")
     total = len(fields)
     return round((detected / total) * 100, 1) if total > 0 else 0.0
 

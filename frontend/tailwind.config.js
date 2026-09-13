@@ -19,6 +19,22 @@ export default {
           800: '#3730a3',
           900: '#312e81',
         },
+        surface: {
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          card: 'var(--bg-card)',
+          'card-hover': 'var(--bg-card-hover)',
+          input: 'var(--bg-input)',
+        },
+        border: {
+          DEFAULT: 'var(--border-color)',
+          active: 'var(--border-active)',
+        },
+        txt: {
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -28,6 +44,7 @@ export default {
         'soft': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
         'card': '0 0 0 1px rgb(0 0 0 / 0.03), 0 2px 4px rgb(0 0 0 / 0.04)',
         'lifted': '0 0 0 1px rgb(0 0 0 / 0.03), 0 4px 12px rgb(0 0 0 / 0.06)',
+        'glow': '0 0 20px rgba(99, 102, 241, 0.3)',
       },
     },
   },

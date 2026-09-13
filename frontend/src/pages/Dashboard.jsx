@@ -21,7 +21,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-7 h-7 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+        <div className="w-7 h-7 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-color)', borderTopColor: 'var(--accent)' }} />
       </div>
     );
   }
@@ -37,12 +37,13 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-0.5">Overview of screening operations</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>Dashboard</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Overview of screening operations</p>
         </div>
         <button
           onClick={() => navigate('/screening/new')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 hover:shadow-md hover:shadow-indigo-200 transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
+          style={{ background: 'var(--accent)' }}
         >
           <Plus className="w-4 h-4" />
           New Screening
@@ -53,14 +54,14 @@ export default function Dashboard() {
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200/60 shadow-md shadow-slate-100 p-4 animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
+            <div key={i} className="rounded-2xl border p-4 animate-slide-up" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)', boxShadow: 'var(--shadow-card)', animationDelay: `${i * 50}ms` }}>
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 ${stat.color} rounded-xl flex items-center justify-center`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-slate-800">{stat.value}</p>
-                  <p className="text-[11px] text-slate-400 font-medium">{stat.label}</p>
+                  <p className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{stat.value}</p>
+                  <p className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
                 </div>
               </div>
             </div>
@@ -68,8 +69,8 @@ export default function Dashboard() {
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-md shadow-slate-100 p-5">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Risk Distribution</h2>
+      <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)', boxShadow: 'var(--shadow-card)' }}>
+        <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Risk Distribution</h2>
         <div className="space-y-3">
           {[
             { label: 'Low Risk', count: stats?.low_risk || 0, color: 'bg-emerald-400', total: stats?.total_screenings || 1 },
@@ -77,60 +78,52 @@ export default function Dashboard() {
             { label: 'High Risk', count: stats?.high_risk || 0, color: 'bg-rose-400', total: stats?.total_screenings || 1 },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 w-20 font-medium">{item.label}</span>
-              <div className="flex-1 h-7 bg-slate-50 rounded-lg overflow-hidden">
-                <div
-                  className={`h-full ${item.color} rounded-lg transition-all duration-700 ease-out`}
-                  style={{ width: `${((item.count / item.total) * 100) || 0}%` }}
-                />
+              <span className="text-xs w-20 font-medium" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
+              <div className="flex-1 h-7 rounded-lg overflow-hidden" style={{ background: 'var(--bg-input)' }}>
+                <div className={`h-full ${item.color} rounded-lg transition-all duration-700 ease-out`} style={{ width: `${((item.count / item.total) * 100) || 0}%` }} />
               </div>
-              <span className="text-xs font-bold text-slate-600 w-6 text-right">{item.count}</span>
+              <span className="text-xs font-bold w-6 text-right" style={{ color: 'var(--text-primary)' }}>{item.count}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-md shadow-slate-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100/80 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Recent Screenings</h2>
-          <button
-            onClick={() => navigate('/history')}
-            className="text-xs text-indigo-500 hover:text-indigo-600 font-semibold flex items-center gap-1 transition-colors"
-          >
+      <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)', boxShadow: 'var(--shadow-card)' }}>
+        <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Screenings</h2>
+          <button onClick={() => navigate('/history')} className="text-xs font-semibold flex items-center gap-1 transition-colors" style={{ color: 'var(--accent)' }}>
             View All <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
         {(!stats?.recent_cases || stats.recent_cases.length === 0) ? (
           <div className="px-5 py-14 text-center">
-            <Clock className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-            <p className="text-sm text-slate-400">No screenings yet</p>
-            <button
-              onClick={() => navigate('/screening/new')}
-              className="mt-3 text-xs text-indigo-500 hover:text-indigo-600 font-semibold"
-            >
-              Start first screening
-            </button>
+            <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-muted)', opacity: 0.3 }} />
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No screenings yet</p>
+            <button onClick={() => navigate('/screening/new')} className="mt-3 text-xs font-semibold" style={{ color: 'var(--accent)' }}>Start first screening</button>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y" style={{ borderColor: 'var(--border-color)' }}>
             {stats.recent_cases.map((c) => (
               <button
                 key={c.id}
                 onClick={() => navigate(`/screening/${c.id}`)}
-                className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-slate-50/80 transition-colors text-left"
+                className="w-full px-5 py-3.5 flex items-center justify-between transition-colors text-left"
+                style={{ borderColor: 'var(--border-color)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                    <Scan className="w-4 h-4 text-slate-400" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center border" style={{ background: 'var(--bg-input)', borderColor: 'var(--border-color)' }}>
+                    <Scan className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-slate-700 font-mono">{c.id}</p>
-                    <p className="text-[11px] text-slate-400 capitalize">{c.document_type?.replace('_', ' ')}</p>
+                    <p className="text-xs font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>{c.id}</p>
+                    <p className="text-[11px] capitalize" style={{ color: 'var(--text-muted)' }}>{c.document_type?.replace('_', ' ')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-slate-400 hidden sm:block">
+                  <span className="text-[11px] hidden sm:block" style={{ color: 'var(--text-muted)' }}>
                     {new Date(c.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                   <RiskBadge level={c.risk_level} score={c.risk_score} />
@@ -141,9 +134,9 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-3.5">
-        <p className="text-[11px] text-indigo-600 font-medium">
-          <strong>System Status:</strong> All modules operational · OCR: Tesseract · Face: OpenCV · Tampering: Image Forensics · Risk: Multi-signal Engine
+      <div className="rounded-2xl px-5 py-3.5 border" style={{ background: 'var(--accent-bg)', borderColor: 'var(--border-color)' }}>
+        <p className="text-[11px] font-medium" style={{ color: 'var(--accent)' }}>
+          <strong>System Status:</strong> All modules operational · OCR: Tesseract · Face: Histogram + Structural · Tampering: Image Forensics · Risk: Multi-signal Engine
         </p>
       </div>
     </div>

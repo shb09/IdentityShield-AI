@@ -17,6 +17,7 @@ export function useAuth() {
 function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     if (token) {
@@ -25,11 +26,14 @@ function App() {
           if (res.ok) return res.json();
           throw new Error('Invalid token');
         })
-        .then(data => setUser(data))
+        .then(data => { setUser(data); setAuthLoading(false); })
         .catch(() => {
           localStorage.removeItem('token');
           setToken(null);
+          setAuthLoading(false);
         });
+    } else {
+      setAuthLoading(false);
     }
   }, [token]);
 
@@ -46,6 +50,17 @@ function App() {
     setToken(null);
     setUser(null);
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]">
+        <div className="text-center">
+          <div className="w-14 h-14 border-3 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-indigo-300/80 text-sm font-medium">Verifying credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>

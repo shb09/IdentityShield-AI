@@ -17,7 +17,7 @@ def validate_date_format(date_str: str) -> Dict[str, Any]:
     return {"valid": False, "parsed": None, "format": None}
 
 
-def check_date合理性(dob_str: str) -> Dict[str, Any]:
+def check_date_validity(dob_str: str) -> Dict[str, Any]:
     result = {"check": "Date of Birth Validity", "status": "PASS", "detail": ""}
 
     date_info = validate_date_format(dob_str)
@@ -104,20 +104,20 @@ def check_required_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def check_field_consistency(fields: Dict[str, Any]) -> Dict[str, Any]:
-    result = {"check": "Field Consistency", "status": "PASS", "details": []}
+    result = {"check": "Field Consistency", "status": "PASS", "detail": ""}
 
+    issues = []
     name = fields.get("name", "Not detected")
     if name != "Not detected" and len(name.strip()) < 2:
         result["status"] = "WARNING"
-        result["details"].append("Name seems too short")
+        issues.append("Name seems too short")
 
     gender = fields.get("gender", "Not detected")
     if gender != "Not detected" and gender not in ("Male", "Female", "Other", "M", "F"):
         result["status"] = "WARNING"
-        result["details"].append(f"Unusual gender value: {gender}")
+        issues.append(f"Unusual gender value: {gender}")
 
-    if not result["details"]:
-        result["details"].append("All fields appear internally consistent")
+    result["detail"] = "; ".join(issues) if issues else "All fields appear internally consistent"
 
     return result
 
@@ -130,7 +130,7 @@ def run_validation(ocr_fields: Dict[str, Any]) -> Dict[str, Any]:
 
     dob = ocr_fields.get("date_of_birth", "Not detected")
     if dob != "Not detected":
-        checks.append(check_date合理性(dob))
+        checks.append(check_date_validity(dob))
 
     expiry = ocr_fields.get("date_of_expiry", "Not detected")
     if expiry != "Not detected":

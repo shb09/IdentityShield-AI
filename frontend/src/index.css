@@ -10,10 +10,68 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #f8fafc;
-  color: #1e293b;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Deep Blue Theme (Default) */
+body, .theme-deep-blue {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --bg-card-hover: #334155;
+  --bg-input: #0f172a;
+  --border-color: #334155;
+  --border-active: #6366f1;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-bg: rgba(99, 102, 241, 0.1);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.25);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Light Theme */
+.theme-light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-input: #f8fafc;
+  --border-color: #e2e8f0;
+  --border-active: #6366f1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-bg: rgba(99, 102, 241, 0.05);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Dark Theme */
+.theme-dark {
+  --bg-primary: #020617;
+  --bg-secondary: #0f172a;
+  --bg-card: #0f172a;
+  --bg-card-hover: #1e293b;
+  --bg-input: #020617;
+  --border-color: #1e293b;
+  --border-active: #6366f1;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-bg: rgba(99, 102, 241, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 ::-webkit-scrollbar {
@@ -24,11 +82,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #475569;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
 }
 
 @keyframes fade-in {
@@ -53,4 +111,14 @@ body {
 }
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(99, 102, 241, 0.1) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }

@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from typing import Optional
@@ -51,11 +50,15 @@ async def screen_document(
     visa_path = None
     if visa:
         visa_content = await visa.read()
+        if len(visa_content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Visa file too large. Max 10MB.")
         visa_path = save_upload(visa_content, visa.filename, "visas")
 
     face_path = None
     if face:
         face_content = await face.read()
+        if len(face_content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Face photo too large. Max 10MB.")
         face_path = save_upload(face_content, face.filename, "faces")
 
     # Create screening record

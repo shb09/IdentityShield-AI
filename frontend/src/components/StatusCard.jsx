@@ -2,14 +2,14 @@ import React from 'react';
 import { CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react';
 
 const statusConfig = {
-  PASS: { icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  MATCH: { icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  WARNING: { icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
-  POSSIBLE_MATCH: { icon: AlertTriangle, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
-  FAIL: { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100' },
-  SUSPICIOUS: { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100' },
-  MISMATCH: { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100' },
-  NOT_DETECTED: { icon: Clock, color: 'text-gray-400', bg: 'bg-gray-50', border: 'border-gray-100' },
+  PASS: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' },
+  MATCH: { icon: CheckCircle, color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)' },
+  WARNING: { icon: AlertTriangle, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
+  POSSIBLE_MATCH: { icon: AlertTriangle, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)' },
+  FAIL: { icon: XCircle, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.1)', border: 'rgba(244, 63, 94, 0.2)' },
+  SUSPICIOUS: { icon: XCircle, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.1)', border: 'rgba(244, 63, 94, 0.2)' },
+  MISMATCH: { icon: XCircle, color: '#f43f5e', bg: 'rgba(244, 63, 94, 0.1)', border: 'rgba(244, 63, 94, 0.2)' },
+  NOT_DETECTED: { icon: Clock, color: '#64748b', bg: 'var(--bg-input)', border: 'var(--border-color)' },
 };
 
 export default function StatusCard({ title, status, detail, children }) {
@@ -17,16 +17,16 @@ export default function StatusCard({ title, status, detail, children }) {
   const Icon = config.icon;
 
   return (
-    <div className="bg-white rounded-2xl border border-indigo-100/50 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-indigo-50">
+    <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
         <div className="flex items-center justify-between">
-          <h3 className="text-[13px] font-semibold text-gray-700">{title}</h3>
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${config.bg} ${config.border} border`}>
-            <Icon className={`w-3.5 h-3.5 ${config.color}`} />
-            <span className={`text-[11px] font-bold ${config.color}`}>{status}</span>
+          <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border" style={{ background: config.bg, borderColor: config.border }}>
+            <Icon className="w-3.5 h-3.5" style={{ color: config.color }} />
+            <span className="text-[11px] font-bold" style={{ color: config.color }}>{status}</span>
           </div>
         </div>
-        {detail && <p className="text-xs text-gray-400 mt-1">{detail}</p>}
+        {detail && <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{detail}</p>}
       </div>
       {children && <div className="px-5 py-4">{children}</div>}
     </div>
