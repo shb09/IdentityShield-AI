@@ -20,105 +20,9 @@ html {
 ::-webkit-scrollbar-thumb:hover { opacity: 1; }
 
 /* ═══════════════════════════════════════════
-   LIGHT THEME
+   NEO THEME — Neo-Brutalism × Formal Light
    ═══════════════════════════════════════════ */
-:root, .theme-light {
-  --bg-deep: #f2f4f8;
-  --bg-surface: #ffffff;
-  --bg-elevated: #ffffff;
-  --bg-input: #f0f2f7;
-  --border: rgba(0, 0, 0, 0.06);
-  --border-active: #6366f1;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-glow: rgba(99, 102, 241, 0.12);
-  --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6);
-  --gradient-2: linear-gradient(135deg, #ec4899, #f43f5e);
-  --gradient-3: linear-gradient(135deg, #10b981, #06b6d4);
-  --gradient-4: linear-gradient(135deg, #f59e0b, #ef4444);
-  --gradient-5: linear-gradient(135deg, #06b6d4, #3b82f6);
-  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
-  --shadow-glow: 0 0 24px rgba(99,102,241,0.1);
-  --nav-bg: rgba(255,255,255,0.8);
-}
-
-/* ═══════════════════════════════════════════
-   DEEP BLUE THEME
-   ═══════════════════════════════════════════ */
-.theme-deep-blue {
-  --bg-deep: #060a14;
-  --bg-surface: rgba(15, 23, 42, 0.6);
-  --bg-elevated: rgba(20, 30, 55, 0.7);
-  --bg-input: rgba(10, 18, 35, 0.8);
-  --border: rgba(99, 102, 241, 0.08);
-  --border-active: #818cf8;
-  --text-primary: #f0f4ff;
-  --text-secondary: #94a3c8;
-  --text-muted: #5b6b8a;
-  --accent: #818cf8;
-  --accent-light: #a5b4fc;
-  --accent-glow: rgba(129, 140, 248, 0.2);
-  --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6);
-  --gradient-2: linear-gradient(135deg, #ec4899, #f43f5e);
-  --gradient-3: linear-gradient(135deg, #10b981, #06b6d4);
-  --gradient-4: linear-gradient(135deg, #f59e0b, #ef4444);
-  --gradient-5: linear-gradient(135deg, #06b6d4, #3b82f6);
-  --gradient-surface: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(0,0,0,0) 100%);
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
-  --shadow-glow: 0 0 32px rgba(99,102,241,0.15);
-  --nav-bg: rgba(6, 10, 20, 0.85);
-}
-
-/* ═══════════════════════════════════════════
-   MIDNIGHT THEME
-   ═══════════════════════════════════════════ */
-.theme-dark {
-  --bg-deep: #000000;
-  --bg-surface: rgba(10, 10, 10, 0.7);
-  --bg-elevated: rgba(18, 18, 18, 0.8);
-  --bg-input: rgba(8, 8, 8, 0.8);
-  --border: rgba(167, 139, 250, 0.06);
-  --border-active: #a78bfa;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #475569;
-  --accent: #a78bfa;
-  --accent-light: #c4b5fd;
-  --accent-glow: rgba(167, 139, 250, 0.15);
-  --gradient-1: linear-gradient(135deg, #a78bfa, #7c3aed);
-  --gradient-2: linear-gradient(135deg, #f472b6, #ec4899);
-  --gradient-3: linear-gradient(135deg, #34d399, #06b6d4);
-  --gradient-4: linear-gradient(135deg, #fbbf24, #f97316);
-  --gradient-5: linear-gradient(135deg, #22d3ee, #6366f1);
-  --gradient-surface: linear-gradient(135deg, rgba(167,139,250,0.03) 0%, rgba(0,0,0,0) 100%);
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.5);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.6);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.7);
-  --shadow-glow: 0 0 24px rgba(167,139,250,0.1);
-  --nav-bg: rgba(0, 0, 0, 0.9);
-}
-
-/* ═══════════════════════════════════════════
-   NEO THEME — Neo-Brutalism × Formal Light × Maximalism
-   ═══════════════════════════════════════════ */
-.theme-neo {
+:root, .theme-neo {
   --bg-deep: #f0ece4;
   --bg-surface: #faf8f5;
   --bg-elevated: #ffffff;
@@ -145,13 +49,40 @@ html {
   --shadow-lg: 8px 8px 0 #1a1a1a;
   --shadow-glow: 5px 5px 0 var(--accent);
   --nav-bg: rgba(250, 248, 245, 0.95);
-  --neo-border: 2px solid #1a1a1a;
+  background: var(--bg-deep);
+  color: var(--text-primary);
 }
 
 /* ═══════════════════════════════════════════
-   BODY
+   DARK THEME — Soft Aurora Dark
    ═══════════════════════════════════════════ */
-:root, .theme-light, .theme-deep-blue, .theme-dark, .theme-neo {
+.theme-dark {
+  --bg-deep: #0c0e1a;
+  --bg-surface: rgba(18, 22, 40, 0.65);
+  --bg-elevated: rgba(24, 30, 52, 0.75);
+  --bg-input: rgba(14, 18, 34, 0.7);
+  --border: rgba(120, 130, 180, 0.1);
+  --border-active: #7c8aff;
+  --text-primary: #d8dff0;
+  --text-secondary: #8892b0;
+  --text-muted: #5a6380;
+  --accent: #7c8aff;
+  --accent-light: #a0abff;
+  --accent-glow: rgba(124, 138, 255, 0.15);
+  --gradient-1: linear-gradient(135deg, #667eea, #764ba2);
+  --gradient-2: linear-gradient(135deg, #f093fb, #f5576c);
+  --gradient-3: linear-gradient(135deg, #4facfe, #00f2fe);
+  --gradient-4: linear-gradient(135deg, #fa709a, #fee140);
+  --gradient-5: linear-gradient(135deg, #a18cd1, #fbc2eb);
+  --gradient-surface: linear-gradient(135deg, rgba(102,126,234,0.04) 0%, rgba(118,75,162,0.02) 100%);
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 30px rgba(124,138,255,0.12);
+  --nav-bg: rgba(12, 14, 26, 0.88);
   background: var(--bg-deep);
   color: var(--text-primary);
 }
@@ -159,6 +90,19 @@ html {
 body {
   background: var(--bg-deep);
   color: var(--text-primary);
+}
+
+/* Aurora background for dark theme */
+.theme-dark::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 60% at 85% 30%, rgba(118, 75, 162, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 85%, rgba(240, 147, 251, 0.04) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 /* ═══════════════════════════════════════════
@@ -178,12 +122,6 @@ body {
   box-shadow: var(--shadow-glow);
   border-color: var(--border-active);
   transform: translateY(-2px);
-}
-
-.card-gradient {
-  background: var(--gradient-surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
 }
 
 /* ═══════════════════════════════════════════
@@ -308,9 +246,10 @@ body {
 }
 .anim-glow { animation: glowPulse 2.5s ease-in-out infinite; }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes auroraDrift {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(2%, -1%) rotate(1deg); }
+  100% { transform: translate(-1%, 2%) rotate(-1deg); }
 }
 
 @keyframes spin {
@@ -347,6 +286,14 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ═══════════════════════════════════════════
+   DIVIDER
+   ═══════════════════════════════════════════ */
+.divider {
+  height: 1px;
+  background: var(--border);
 }
 
 /* ═══════════════════════════════════════════
@@ -420,22 +367,4 @@ body {
 .theme-neo .divider {
   height: 2px;
   background: #1a1a1a;
-}
-
-.theme-neo .nav-tabs {
-  border: 2px solid #1a1a1a;
-  border-radius: 0;
-}
-
-.theme-neo ::selection {
-  background: var(--accent);
-  color: white;
-}
-
-/* ═══════════════════════════════════════════
-   DIVIDER
-   ═══════════════════════════════════════════ */
-.divider {
-  height: 1px;
-  background: var(--border);
 }

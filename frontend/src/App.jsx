@@ -37,7 +37,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'neo');
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
