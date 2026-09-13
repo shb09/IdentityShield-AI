@@ -32,6 +32,14 @@ def extract_text_from_image(image_path: str) -> str:
         return ""
 
 
+def _find_line_after(lines, pattern):
+    for i, line in enumerate(lines):
+        if re.search(pattern, line, re.IGNORECASE):
+            if i + 1 < len(lines):
+                return lines[i + 1].strip()
+    return None
+
+
 def extract_fields_from_text(text: str) -> Dict[str, Any]:
     fields = {
         "name": "Not detected",
@@ -48,73 +56,123 @@ def extract_fields_from_text(text: str) -> Dict[str, Any]:
 
     lines = [line.strip() for line in text.split("\n") if line.strip()]
 
-    # Extract document number (alphanumeric, typically 6-12 chars)
-    for pattern in [
-        r'(?:Passport|Document|ID|License)\s*(?:No|Number|#)\s*[:.]?\s*([A-Z0-9]{6,12})',
-        r'\b([A-Z]{1,2}\d{6,10})\b',
-        r'\b(\d{8,12})\b',
-    ]:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            fields["document_number"] = match.group(1)
-            break
+    # --- Name + Document Number ---
+    # Header: "NAME DOCUMENT No." → next line: "RAJESH KUMAR SINGH 4561234"
+    name_value_line = _find_line_after(lines, r'^\s*Name\b')
+    if name_value_line and not re.match(r'(?:REPUBLIC|PASSPORT|DOCUMENT|DATE|GENDER|ENDER|NATIONAL)', name_value_line, re.IGNORECASE):
+        # Split: trailing digits are document number, leading words are name
+        m = re.match(r'^(.+?)\s+(\d{5,12})\s*$', name_value_line)
+        if m:
+            fields["name"] = m.group(1).strip()
+            fields["document_number"] = m.group(2).strip()
+        else:
+            # Try: embedded alphanumeric doc number (like AT894561)
+            m2 = re.match(r'^(.+?)\s+([A-Z]{1,3}\d{5,10})\s*$', name_value_line)
+            if m2:
+                fields["name"] = m2.group(1).strip()
+                fields["document_number"] = m2.group(2).strip()
+            else:
+                # Entire line is name, no doc number visible
+                cleaned = re.sub(r'[^A-Za-z\s]', '', name_value_line).strip()
+                if len(cleaned) > 2:
+                    fields["name"] = cleaned
 
-    # Extract names
-    name_patterns = [
-        r'(?:Name|Surname|Given\s*Name)\s*[:.]?\s*([A-Z][A-Za-z\s]+)',
-        r'(?:S/O|D/O|W/O)\s*[:.]?\s*([A-Z][A-Za-z\s]+)',
-    ]
-    for pattern in name_patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            fields["name"] = match.group(1).strip()
-            break
+    # Fallback name/doc patterns in raw text
+    if fields["document_number"] == "Not detected":
+        for pattern in [
+            r'(?:Passport|Document|ID|License)\s*(?:No|Number|#)\s*[:.]?\s*([A-Z0-9]{5,15})',
+        ]:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                fields["document_number"] = match.group(1)
+                break
 
-    # If no name found, try first substantial line
-    if fields["name"] == "Not detected" and lines:
+    if fields["name"] == "Not detected":
+        name_patterns = [
+            r'(?:Name|Surname|Given\s*Name)\s*[:.]?\s*([A-Z][A-Za-z\s]+)',
+            r'(?:S/O|D/O|W/O)\s*[:.]?\s*([A-Z][A-Za-z\s]+)',
+        ]
+        for pattern in name_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                candidate = match.group(1).strip()
+                if not re.match(r'(?:DOCUMENT|REPUBLIC|PASSPORT)', candidate, re.IGNORECASE):
+                    fields["name"] = candidate
+                    break
+
+    # Last resort: first clean line that looks like a person name
+    if fields["name"] == "Not detected":
         for line in lines:
             cleaned = re.sub(r'[^A-Za-z\s]', '', line).strip()
-            if len(cleaned) > 3 and not any(kw in cleaned.lower() for kw in ['passport', 'republic', 'government', 'identity']):
+            if (len(cleaned) > 3 and
+                not any(kw in cleaned.lower() for kw in
+                        ['passport', 'republic', 'government', 'identity', 'document',
+                         'date', 'gender', 'ender', 'nationality', 'expiry', 'india'])):
                 fields["name"] = cleaned
                 break
 
-    # Extract dates
-    date_patterns = [
-        r'(\d{2}[./-]\d{2}[./-]\d{4})',
-        r'(\d{4}[./-]\d{2}[./-]\d{2})',
-        r'(\d{2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4})',
-    ]
-    dates_found = []
-    for pattern in date_patterns:
-        matches = re.findall(pattern, text, re.IGNORECASE)
-        dates_found.extend(matches)
+    # --- Dates ---
+    # Typically line like: "12/05/1988 11/05/2028"
+    # First date = DOB, last = expiry
+    date_pattern = r'(\d{2}[./-]\d{2}[./-]\d{4})'
 
-    if dates_found:
-        if len(dates_found) >= 1:
-            fields["date_of_birth"] = dates_found[0]
-        if len(dates_found) >= 2:
-            fields["date_of_expiry"] = dates_found[-1]
-        if len(dates_found) >= 3:
-            fields["issue_date"] = dates_found[1]
+    # Try finding dates near specific headers
+    date_line = _find_line_after(lines, r'(?:Date|Expiry|DOB|Birth)')
+    if not date_line:
+        # Just find all dates in the whole text
+        date_line = text
 
-    # Extract nationality
-    nationality_patterns = [
-        r'(?:Nationality|Country|Citizen)\s*[:.]?\s*([A-Z][A-Za-z\s]+)',
-        r'\b(Indian|Nepalese|Bhutanese|Bangladeshi|Pakistani|Sri\s*Lankan|Chinese)\b',
-    ]
-    for pattern in nationality_patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            fields["nationality"] = match.group(1).strip()
+    all_dates = re.findall(date_pattern, date_line, re.IGNORECASE)
+    if not all_dates:
+        all_dates = re.findall(date_pattern, text, re.IGNORECASE)
+
+    if all_dates:
+        fields["date_of_birth"] = all_dates[0]
+        if len(all_dates) >= 2:
+            fields["date_of_expiry"] = all_dates[-1]
+        else:
+            fields["date_of_expiry"] = all_dates[0]
+        if len(all_dates) >= 3:
+            fields["issue_date"] = all_dates[1]
+
+    # --- Nationality ---
+    # Look for nationality keyword in any line, extract country from that line or next
+    for i, line in enumerate(lines):
+        if re.search(r'Nationality', line, re.IGNORECASE):
+            # Check current line and next for a country name
+            for check_line in [line, lines[i + 1] if i + 1 < len(lines) else ""]:
+                m = re.search(r'\b(Indian|Nepalese|Bhutanese|Bangladeshi|Pakistani|Sri\s*Lankan|Chinese|American|British|Canadian|Australian|German|French|Japanese|Korean)\b', check_line, re.IGNORECASE)
+                if m:
+                    fields["nationality"] = m.group(1).strip()
+                    break
             break
 
-    # Extract gender
-    gender_match = re.search(r'(?:Sex|Gender)\s*[:.]?\s*(Male|Female|M|F|Other)', text, re.IGNORECASE)
-    if gender_match:
-        g = gender_match.group(1).upper()
-        fields["gender"] = "Male" if g in ("M", "MALE") else "Female" if g in ("F", "FEMALE") else "Other"
+    # Fallback
+    if fields["nationality"] == "Not detected":
+        m = re.search(r'\b(Indian|Nepalese|Bhutanese|Bangladeshi|Pakistani|Sri\s*Lankan|Chinese)\b', text, re.IGNORECASE)
+        if m:
+            fields["nationality"] = m.group(1).strip()
 
-    # MRZ detection
+    # --- Gender ---
+    # OCR reads "GENDER" as "ENDER". Look for gender-related header.
+    for i, line in enumerate(lines):
+        if re.search(r'(?:Gender|Sex|ender)', line, re.IGNORECASE):
+            # Check next line for gender value
+            if i + 1 < len(lines):
+                m = re.search(r'\b(Male|Female|M|F|Other)\b', lines[i + 1], re.IGNORECASE)
+                if m:
+                    g = m.group(1).upper()
+                    fields["gender"] = "Male" if g in ("M", "MALE") else "Female" if g in ("F", "FEMALE") else "Other"
+                    break
+
+    # Fallback
+    if fields["gender"] == "Not detected":
+        m = re.search(r'(?:Sex|Gender|ender)\s*[:.]?\s*(Male|Female|M|F|Other)', text, re.IGNORECASE)
+        if m:
+            g = m.group(1).upper()
+            fields["gender"] = "Male" if g in ("M", "MALE") else "Female" if g in ("F", "FEMALE") else "Other"
+
+    # --- MRZ detection ---
     mrz_lines = [line for line in lines if re.match(r'^[A-Z0-9<]{20,}', line)]
     if mrz_lines:
         fields["mrz_raw"] = mrz_lines[:3]
@@ -123,8 +181,10 @@ def extract_fields_from_text(text: str) -> Dict[str, Any]:
 
 
 def calculate_ocr_confidence(fields: Dict[str, Any]) -> float:
-    detected = sum(1 for v in fields.values() if v and v != "Not detected")
-    total = len(fields)
+    # Only count the core fields for confidence
+    core_fields = ["name", "document_number", "nationality", "date_of_birth", "date_of_expiry", "gender"]
+    detected = sum(1 for f in core_fields if fields.get(f) and fields.get(f) != "Not detected")
+    total = len(core_fields)
     return round((detected / total) * 100, 1) if total > 0 else 0.0
 
 
