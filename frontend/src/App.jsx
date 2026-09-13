@@ -86,7 +86,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/" replace />} />
-          <Route path="/*" element={<ProtectedRoute><Layout /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="screening/new" element={<NewScreening />} />
+            <Route path="screening/:id" element={<ScreeningResult />} />
+            <Route path="history" element={<History />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>
