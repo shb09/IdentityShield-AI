@@ -1,14 +1,28 @@
 import re
-import pytesseract
+import shutil
 from PIL import Image
 from typing import Dict, Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
 
+_tesseract_available = None
+
+
+def _check_tesseract():
+    global _tesseract_available
+    if _tesseract_available is None:
+        _tesseract_available = shutil.which("tesseract") is not None
+        if not _tesseract_available:
+            logger.warning("Tesseract binary not found — OCR will return empty results. Install tesseract-ocr.")
+    return _tesseract_available
+
 
 def extract_text_from_image(image_path: str) -> str:
+    if not _check_tesseract():
+        return ""
     try:
+        import pytesseract
         img = Image.open(image_path)
         text = pytesseract.image_to_string(img)
         text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)

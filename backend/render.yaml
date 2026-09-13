@@ -9,3 +9,5 @@ services:
       - key: PYTHON_VERSION
         value: "3.11"
     healthCheckPath: /api/health
+    aptPackages:
+      - tesseract-ocr
