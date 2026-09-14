@@ -12,10 +12,14 @@ from app.api.auth_routes import router as auth_router
 from app.api.screening_routes import router as screening_router
 
 
+from app.utils.helpers import cleanup_old_files
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_db()
     await create_demo_data()
+    cleanup_old_files(max_age_hours=24)
     yield
     await close_db()
 
@@ -29,7 +33,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://identity-shield-ai.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

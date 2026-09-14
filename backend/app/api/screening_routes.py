@@ -11,11 +11,12 @@ from app.services.tampering_service import run_tampering_detection
 from app.services.face_service import run_face_verification
 from app.services.risk_service import calculate_risk_score
 from app.config import MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES
-import traceback
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["screening"])
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".tif"}
 
 
 def validate_file(file: UploadFile):
@@ -24,6 +25,15 @@ def validate_file(file: UploadFile):
             status_code=400,
             detail=f"Invalid file type: {file.content_type}. Allowed: {', '.join(ALLOWED_IMAGE_TYPES)}"
         )
+    # Also validate file extension
+    if file.filename:
+        import os
+        ext = os.path.splitext(file.filename.lower())[1]
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file extension: {ext}. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+            )
 
 
 @router.post("/screen")
@@ -34,6 +44,10 @@ async def screen_document(
     face: Optional[UploadFile] = File(None),
     current_user: dict = Depends(get_current_user),
 ):
+    db = get_db()
+    if db is None:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
+
     validate_file(document)
     if visa:
         validate_file(visa)
@@ -41,7 +55,6 @@ async def screen_document(
         validate_file(face)
 
     screening_id = generate_screening_id()
-    db = get_db()
 
     # Save uploaded files
     doc_content = await document.read()
@@ -161,13 +174,15 @@ async def screen_document(
             "created_at": datetime.now().isoformat(),
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Screening failed: {traceback.format_exc()}")
+        logger.error(f"Screening failed for {screening_id}: {type(e).__name__}: {e}")
         await db.screenings.update_one(
             {"_id": screening_id},
             {"$set": {"status": "error"}}
         )
-        raise HTTPException(status_code=500, detail=f"Screening failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Screening processing failed. Please try again.")
 
 
 @router.get("/cases")
@@ -177,6 +192,8 @@ async def list_cases(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     cursor = db.screenings.find(
         {},
         {"_id": 1, "document_type": 1, "risk_score": 1, "risk_level": 1, "status": 1, "created_at": 1, "demo_mode": 1}
@@ -199,6 +216,8 @@ async def get_case(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     case = await db.screenings.find_one({"_id": screening_id})
 
     if not case:
@@ -216,6 +235,8 @@ async def get_case(
 @router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     total = await db.screenings.count_documents({})
     low = await db.screenings.count_documents({"risk_level": "LOW"})
     medium = await db.screenings.count_documents({"risk_level": "MEDIUM"})

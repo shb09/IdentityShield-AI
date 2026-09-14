@@ -9,6 +9,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
     db = get_db()
+    if db is None:
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     user = await db.users.find_one({"username": request.username})
 
     if not user or not verify_password(request.password, user["password_hash"]):

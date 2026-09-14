@@ -14,6 +14,26 @@ def calculate_risk_score(
 
     reasons = []
 
+    # Detect if we have real signals or just empty/default inputs
+    has_validation = bool(validation) and validation.get("checks")
+    has_tampering = bool(tampering) and tampering.get("risk_score", 0) > 0
+    has_face = face.get("status") in ("MATCH", "MISMATCH", "POSSIBLE_MATCH")
+    has_ocr = ocr_confidence > 0
+
+    # If no real signals at all, return baseline LOW
+    if not has_validation and not has_tampering and not has_face and not has_ocr:
+        return {
+            "score": 0,
+            "level": "LOW",
+            "breakdown": {
+                "document_validity": 0,
+                "field_consistency": 0,
+                "tampering": 0,
+                "face_verification": 0,
+            },
+            "reasons": ["No risk signals available — awaiting document analysis"],
+        }
+
     # Document validity score (0 = bad, 100 = good)
     val_score = validation.get("score", 100)
     val_status = validation.get("status", "PASS")
