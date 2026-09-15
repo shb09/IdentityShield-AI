@@ -5,6 +5,7 @@ python-jose[cryptography]
 bcrypt
 Pillow
 pytesseract
+rapidocr-onnxruntime
 numpy
 pydantic
 aiofiles
